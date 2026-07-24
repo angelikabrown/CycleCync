@@ -1,7 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.database import Base, engine
+from app.models.user import User
+
 app = FastAPI()
+
+Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,4 +18,4 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": "CycleCycle API is running!"}
+    return {"message": "CycleCync API is running!"}
