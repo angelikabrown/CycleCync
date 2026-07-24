@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # CycleCync
 
 > **Simple Data. Big Impact.**
@@ -167,3 +168,6 @@ Confidence leads to better decisions.
 ## License
 
 This project is currently being developed as a personal portfolio project and learning experience.
+=======
+
+>>>>>>> 694105d0f5306ef633d1b35602908c112e324ef3
