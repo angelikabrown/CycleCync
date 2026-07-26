@@ -13,10 +13,15 @@ def register_user(user: UserCreate,
                   db: Session = Depends(get_db)):
     
     #create a new user instance
-    new_user = User(username=user.username, email=user.email, password=user.password)
+    new_user = User(username=user.username, email=user.email, hashed_password=user.password)
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
 
     return {
-        "message": "User received",
-        "username": user.username,
-        "email": user.email
+        "message": "User created successfully",
+        "id": new_user.id,
+        "username": new_user.username,
+        "email": new_user.email
     }
