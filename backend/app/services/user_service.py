@@ -1,8 +1,9 @@
-from app.utils.security import hash_password
+from backend.app.utils.jwt import create_access_token
 from fastapi import HTTPException
 
+from app.utils.security import hash_password, verify_password
 from app.models.user import User
-from app.schemas.user import UserCreate
+from app.schemas.user import LoginRequest, UserCreate
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -36,3 +37,26 @@ def create_user(db: Session, user: UserCreate):
     db.refresh(new_user)
     
     return new_user
+
+def login_user(db: Session, login: LoginRequest):
+    """
+    Authenticate a user based on email and password.
+
+    Args:
+        db (Session): The database session.
+        login (LoginRequest): The login request data.
+    """
+    user = db.execute(select(User).where(User.email == login.email)).scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(status_code=400, detail="Invalid email or password")
+
+    if not verify_password(login.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Invalid email or password")
+    
+    token = create_access_token(user.id)
+
+    return {
+    "access_token": token,
+    "token_type": "bearer"
+}
