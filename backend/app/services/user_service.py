@@ -1,4 +1,4 @@
-from backend.app.utils.jwt import create_access_token
+from app.utils.jwt import create_access_token
 from fastapi import HTTPException
 
 from app.utils.security import hash_password, verify_password
