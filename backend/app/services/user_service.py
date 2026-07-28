@@ -1,3 +1,4 @@
+from app.utils.security import hash_password
 from fastapi import HTTPException
 
 from app.models.user import User
@@ -29,7 +30,7 @@ def create_user(db: Session, user: UserCreate):
         raise HTTPException(status_code=400, detail="Email already exists") 
     
 
-    new_user = User(username=user.username, email=user.email, hashed_password=user.password)
+    new_user = User(username=user.username, email=user.email, hashed_password=hash_password(user.password))
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

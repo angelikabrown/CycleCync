@@ -9,6 +9,7 @@ asttokens==3.0.0
 async-lru==2.0.5
 attrs==25.3.0
 babel==2.17.0
+bcrypt==5.0.0
 beautifulsoup4==4.13.4
 bleach==6.2.0
 blinker==1.9.0
@@ -28,6 +29,7 @@ executing==2.2.0
 fastapi==0.139.2
 fastjsonschema==2.21.1
 Flask==3.1.2
+Flask-SQLAlchemy==3.1.1
 fonttools==4.59.1
 fqdn==1.5.1
 greenlet==3.2.4
