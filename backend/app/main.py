@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
 from app.models.user import User
+from app.models.daily_check_in import DailyCheckIn
 from app.routers import users
 
 app = FastAPI()
