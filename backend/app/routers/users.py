@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User
 from app.schemas.user import LoginRequest, Token, UserCreate, UserResponse
+from fastapi.security import OAuth2PasswordRequestForm
 from app.utils.auth import get_current_user
 from app.services.user_service import create_user, login_user
 
@@ -30,7 +31,7 @@ def register_user(user: UserCreate,
     return new_user
 
 @router.post("/login", response_model=Token)
-def login(login: LoginRequest, db: Session = Depends(get_db)):
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """
     Authenticate a user based on email and password.
 
@@ -40,6 +41,11 @@ def login(login: LoginRequest, db: Session = Depends(get_db)):
     Returns:
         Token: The access token and token type.
     """
+
+    login = LoginRequest(
+        email=form_data.username,
+        password=form_data.password
+    )
 
     return login_user(db, login)
 
