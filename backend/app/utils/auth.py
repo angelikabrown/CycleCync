@@ -1,6 +1,6 @@
-import select
+from sqlalchemy import select
 from app.config import ALGORITHM, SECRET_KEY
-from app.utils import jwt
+from jose import JWTError, jwt
 from app.models.user import User
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -33,7 +33,7 @@ def get_current_user(
         SECRET_KEY,
         algorithms=[ALGORITHM]
         )
-    except jwt.JWTError:
+    except JWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
     # Extract the user ID from the token payload

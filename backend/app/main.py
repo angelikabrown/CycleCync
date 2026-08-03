@@ -1,3 +1,4 @@
+from app.routers import daily_checkins
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,6 +22,7 @@ app.add_middleware(
 
 # Include the users router
 app.include_router(users.router)
+app.include_router(daily_checkins.router)
 
 @app.get("/")
 def root():
