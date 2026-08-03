@@ -27,3 +27,4 @@ app.include_router(daily_checkins.router)
 @app.get("/")
 def root():
     return {"message": "CycleCync API is running!"}
+

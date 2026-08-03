@@ -9,6 +9,18 @@ from app.schemas.daily_check_in import DailyCheckInCreate
 
 
 def create_daily_checkin(db: Session, daily_check_in: DailyCheckInCreate, current_user: User):
+    """
+    Create a new daily check-in for the current user.
+
+
+    Args:
+        db (Session): The database session.
+        daily_check_in (DailyCheckInCreate): The daily check-in data.
+        current_user (User): The currently authenticated user.
+    
+    Returns:
+        DailyCheckIn: The created daily check-in instance.
+    """
     
     existing_checkin = db.execute(
         select(DailyCheckIn).where(
@@ -36,3 +48,21 @@ def create_daily_checkin(db: Session, daily_check_in: DailyCheckInCreate, curren
 
     return new_checkin
     
+def get_daily_checkins(
+    db: Session,
+    current_user: User):
+    """
+    Retrieve all daily check-ins for the current user.
+
+    Args:
+        db (Session): The database session.
+        current_user (User): The currently authenticated user.
+
+    Returns:
+        List[DailyCheckIn]: A list of daily check-ins for the current user.
+    """
+    daily_checkins = db.execute(
+        select(DailyCheckIn).where(DailyCheckIn.user_id == current_user.id).order_by(DailyCheckIn.date.desc())
+    ).scalars().all()
+
+    return daily_checkins
