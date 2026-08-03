@@ -1,0 +1,33 @@
+from http.client import HTTPException
+import select
+from sqlalchemy.orm import Session
+from app.models.daily_check_in import DailyCheckIn
+from app.models.user import User
+from app.utils.auth import get_current_user
+from app.schemas.daily_check_in import DailyCheckInCreate
+
+
+def create_daily_checkin(db: Session, daily_check_in: DailyCheckInCreate, current_user: User):
+    
+    existing_checkin = db.execute(select
+                                  (DailyCheckIn).where(DailyCheckIn.user_id == current_user.id, DailyCheckIn.date == daily_check_in.date)).scalar_one_or_none()
+    
+    if existing_checkin is not None:
+        raise HTTPException(status_code=400, detail="Daily check-in for this date already exists")
+    
+    new_checkin = DailyCheckIn(
+        date = daily_check_in.date, 
+        cycle_day=daily_check_in.cycle_day, 
+        bbt=daily_check_in.bbt, 
+        mood=daily_check_in.mood, 
+        energy_level=daily_check_in.energy_level, 
+        sleep_quality=daily_check_in.sleep_quality, 
+        notes=daily_check_in.notes, 
+        user_id=current_user.id)
+    
+    db.add(new_checkin)
+    db.commit()
+    db.refresh(new_checkin)
+
+    return new_checkin
+    
