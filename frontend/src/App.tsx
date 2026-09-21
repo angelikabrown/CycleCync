@@ -1,23 +1,23 @@
+import { useState } from "react";
 import CheckInHistory from "./components/CheckInHistory";
-import Login from "./components/Login";
 import DailyCheckInForm from "./components/DailyCheckInForm";
 
 function App() {
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   return (
     <div>
       <h1>Hello CycleCync</h1>
-      <Login />
 
-      <DailyCheckInForm />
+      <DailyCheckInForm
+        onCheckInSaved={() =>
+          setRefreshTrigger((current) => current + 1)
+        }
+      />
 
-
-      <CheckInHistory />
-
-
-
+      <CheckInHistory refreshTrigger={refreshTrigger} />
     </div>
   );
 }
-
 
 export default App;

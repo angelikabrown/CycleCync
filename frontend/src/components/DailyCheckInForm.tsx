@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-function DailyCheckInForm() {
+type DailyCheckInFormProps = {
+    onCheckInSaved: () => void;
+};
+
+function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
     const [date, setDate] = useState(
         new Date().toISOString().split("T")[0]
     );
@@ -50,6 +54,8 @@ function DailyCheckInForm() {
             }
             console.log("Check-in saved!");
 
+            onCheckInSaved();
+
             setSuccessMessage("Check-in saved!");
 
             setDate(new Date().toISOString().split("T")[0]);
@@ -72,7 +78,7 @@ function DailyCheckInForm() {
         <div>
             <h2>Daily Check-In</h2>
 
-            {successMessage && <p>{successMessage}</p>}
+
 
             <form onSubmit={handleSubmit}>
                 <label>
@@ -174,7 +180,13 @@ function DailyCheckInForm() {
 
                 <button type="submit">Save Check-In</button>
             </form>
+
+            {successMessage && <p>{successMessage}</p>}
+
         </div>
+
+
+
     );
 }
 

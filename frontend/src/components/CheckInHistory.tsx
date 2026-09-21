@@ -11,14 +11,15 @@ type DailyCheckIn = {
     notes: string | null;
 };
 
-function CheckInHistory() {
+type CheckInHistoryProps = {
+    refreshTrigger: number;
+};
+
+function CheckInHistory({ refreshTrigger }: CheckInHistoryProps) {
     const [checkins, setCheckins] = useState<DailyCheckIn[]>([]);
 
-    useEffect(() => {
-        console.log("useEffect running");
-
+    const fetchCheckIns = () => {
         const token = sessionStorage.getItem("token");
-        console.log("Token:", token);
 
         fetch("http://localhost:8000/daily_checkins/", {
             headers: {
@@ -26,8 +27,6 @@ function CheckInHistory() {
             },
         })
             .then((res) => {
-                console.log("Status:", res.status);
-
                 if (!res.ok) {
                     throw new Error(`HTTP ${res.status}`);
                 }
@@ -35,11 +34,14 @@ function CheckInHistory() {
                 return res.json();
             })
             .then((data) => {
-                console.log("Data:", data);
                 setCheckins(data);
             })
             .catch((err) => console.error("Fetch Error:", err));
-    }, []);
+    };
+
+    useEffect(() => {
+        fetchCheckIns();
+    }, [refreshTrigger]);
 
     return (
         <div>
@@ -53,6 +55,7 @@ function CheckInHistory() {
                         <p>
                             <strong>Date:</strong> {checkin.date}
                         </p>
+                        <p>📅 Cycle Day: {checkin.cycle_day}</p>
                         <p>🌡 BBT: {checkin.bbt}</p>
                         <p>😊 Mood: {checkin.mood}</p>
                         <p>⚡ Energy: {checkin.energy_level}</p>
