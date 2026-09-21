@@ -84,6 +84,7 @@ function DailyCheckInForm() {
                     Cycle Day:
                     <input
                         type="number"
+                        min="1"
                         value={cycleDay}
                         onChange={(e) => setCycleDay(e.target.value)}
                     />

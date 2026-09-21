@@ -1,3 +1,4 @@
+from dataclasses import Field
 from pydantic import BaseModel
 from datetime import date
 
@@ -14,7 +15,7 @@ class DailyCheckInCreate(BaseModel):
 class DailyCheckInResponse(BaseModel):
     id: int
     date: date
-    cycle_day: int | None = None
+    cycle_day: int | None = Field(default=None, ge=1)
     bbt: float | None = None
     mood: str | None = None
     energy_level: str | None = None
