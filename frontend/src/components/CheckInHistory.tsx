@@ -55,7 +55,7 @@ function CheckInHistory({ refreshTrigger }: CheckInHistoryProps) {
                         <p>
                             <strong>Date:</strong> {checkin.date}
                         </p>
-                        <p>📅 Cycle Day: {checkin.cycle_day}</p>
+                        <p>📅 CD: {checkin.cycle_day}</p>
                         <p>🌡 BBT: {checkin.bbt}</p>
                         <p>😊 Mood: {checkin.mood}</p>
                         <p>⚡ Energy: {checkin.energy_level}</p>
