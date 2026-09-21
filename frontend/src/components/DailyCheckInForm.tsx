@@ -12,8 +12,39 @@ function DailyCheckInForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // We'll add the API request here next.
+        const token = sessionStorage.getItem("token");
+
+        const checkInData = {
+            date: date,
+            cycle_day: cycleDay ? Number(cycleDay) : null,
+            bbt: bbt ? Number(bbt) : null,
+            mood: mood || null,
+            energy_level: energyLevel || null,
+            sleep_quality: sleepQuality || null,
+            notes: notes || null,
+        };
+
+        try {
+            const response = await fetch(
+                "http://localhost:8000/daily_checkins/checkin",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(checkInData),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to save check-in data");
+            }
+        } catch (error) {
+            console.error("Error during check-in submission:", error);
+        }
     };
+
 
     return (
         <div>
