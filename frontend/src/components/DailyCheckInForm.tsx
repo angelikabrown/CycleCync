@@ -47,6 +47,16 @@ function DailyCheckInForm() {
                     errorData.detail || "Failed to save check-in data"
                 );
             }
+            console.log("Check-in saved!");
+
+            setDate(new Date().toISOString().split("T")[0]);
+            setCycleDay("");
+            setBbt("");
+            setMood("");
+            setEnergyLevel("");
+            setSleepQuality("");
+            setNotes("");
+
         } catch (error) {
             console.error("Error during check-in submission:", error);
         }
@@ -95,33 +105,51 @@ function DailyCheckInForm() {
 
                 <label>
                     Mood:
-                    <input
-                        type="text"
+                    <select
                         value={mood}
                         onChange={(e) => setMood(e.target.value)}
-                    />
+                    >
+                        <option value="">Select mood</option>
+                        <option value="Very Low">Very Low</option>
+                        <option value="Low">Low</option>
+                        <option value="Neutral">Neutral</option>
+                        <option value="Good">Good</option>
+                        <option value="Very Good">Very Good</option>
+                    </select>
                 </label>
 
                 <br />
 
                 <label>
                     Energy:
-                    <input
-                        type="text"
+                    <select
                         value={energyLevel}
                         onChange={(e) => setEnergyLevel(e.target.value)}
-                    />
+                    >
+                        <option value="">Select energy level</option>
+                        <option value="Very Low">Very Low</option>
+                        <option value="Low">Low</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="High">High</option>
+                        <option value="Very High">Very High</option>
+                    </select>
                 </label>
 
                 <br />
 
                 <label>
                     Sleep Quality:
-                    <input
-                        type="text"
+                    <select
                         value={sleepQuality}
                         onChange={(e) => setSleepQuality(e.target.value)}
-                    />
+                    >
+                        <option value="">Select sleep quality</option>
+                        <option value="Poor">Poor</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Good">Good</option>
+                        <option value="Very Good">Very Good</option>
+                        <option value="Excellent">Excellent</option>
+                    </select>
                 </label>
 
                 <br />
