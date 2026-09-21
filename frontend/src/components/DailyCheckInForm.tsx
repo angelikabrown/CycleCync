@@ -1,7 +1,9 @@
 import { useState } from "react";
 
 function DailyCheckInForm() {
-    const [date, setDate] = useState("");
+    const [date, setDate] = useState(
+        new Date().toISOString().split("T")[0]
+    );
     const [cycleDay, setCycleDay] = useState("");
     const [bbt, setBbt] = useState("");
     const [mood, setMood] = useState("");
@@ -38,7 +40,12 @@ function DailyCheckInForm() {
             );
 
             if (!response.ok) {
-                throw new Error("Failed to save check-in data");
+                const errorData = await response.json();
+                console.log("Backend error:", errorData);
+
+                throw new Error(
+                    errorData.detail || "Failed to save check-in data"
+                );
             }
         } catch (error) {
             console.error("Error during check-in submission:", error);
@@ -57,6 +64,7 @@ function DailyCheckInForm() {
                         type="date"
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
+                        required
                     />
                 </label>
 
