@@ -10,6 +10,7 @@ function App() {
 
       <DailyCheckInForm />
 
+
       <CheckInHistory />
 
 

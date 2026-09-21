@@ -10,6 +10,7 @@ function DailyCheckInForm() {
     const [energyLevel, setEnergyLevel] = useState("");
     const [sleepQuality, setSleepQuality] = useState("");
     const [notes, setNotes] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -49,6 +50,8 @@ function DailyCheckInForm() {
             }
             console.log("Check-in saved!");
 
+            setSuccessMessage("Check-in saved!");
+
             setDate(new Date().toISOString().split("T")[0]);
             setCycleDay("");
             setBbt("");
@@ -64,8 +67,12 @@ function DailyCheckInForm() {
 
 
     return (
+
+
         <div>
             <h2>Daily Check-In</h2>
+
+            {successMessage && <p>{successMessage}</p>}
 
             <form onSubmit={handleSubmit}>
                 <label>
