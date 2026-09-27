@@ -4,7 +4,7 @@ from datetime import date
 
 class DailyCheckInCreate(BaseModel):
     date: date
-    cycle_day: int | None = None
+    cycle_day: int | None = Field(default=None, ge=1)
     bbt: float | None = None
     mood: str | None = None
     energy_level: str | None = None
