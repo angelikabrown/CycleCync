@@ -107,3 +107,40 @@ def test_create_checkin_negative_cycle_day(client):
     )
 
     assert response.status_code == 422
+
+
+#  This test checks the behavior of the daily check-in endpoint when a user attempts to create a check-in with only the required fields. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header and only the required date field in the payload. The test verifies that the check-in creation is successful (status code 200).
+def test_create_checkin_with_only_required_fields(client):
+    # Register user
+    client.post(
+        "/users/register",
+        json={
+            "username": "minimaluser",
+            "email": "minimal@example.com",
+            "password": "password123"
+        }
+    )
+
+    # Login
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "minimal@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    # Create check-in with only required data
+    response = client.post(
+        "/daily_checkins/checkin",
+        headers={
+            "Authorization": f"Bearer {token}"
+        },
+        json={
+            "date": "2026-09-27"
+        }
+    )
+
+    assert response.status_code == 200
