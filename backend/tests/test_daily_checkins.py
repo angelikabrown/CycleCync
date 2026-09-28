@@ -145,6 +145,57 @@ def test_create_checkin_with_only_required_fields(client):
 
     assert response.status_code == 200
 
+#  This test checks the behavior of the daily check-in endpoint when attempting to create a duplicate check-in for the same date. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header. The test verifies that the first check-in creation is successful (status code 200) and that the second attempt to create a check-in for the same date fails (status code 400).
+def test_create_duplicate_checkin(client):
+    # Register user
+    client.post(
+        "/users/register",
+        json={
+            "username": "duplicatecheckin",
+            "email": "duplicatecheckin@example.com",
+            "password": "password123"
+        }
+    )
+
+    # Login
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "duplicatecheckin@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    checkin = {
+        "date": "2026-09-27",
+        "cycle_day": 10,
+        "bbt": 97.5,
+        "mood": "Good",
+        "energy_level": "High",
+        "sleep_quality": "Good",
+        "notes": "Test check-in"
+    }
+
+    # First check-in should succeed
+    response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json=checkin
+    )
+
+    assert response.status_code == 200
+
+    # Second check-in for the same date should fail
+    response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json=checkin
+    )
+
+    assert response.status_code == 400
+
 
 #  This test checks the behavior of the daily check-in endpoint when a user attempts to create a check-in with an invalid mood value. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header and an invalid mood value in the payload. The test verifies that the request fails (status code 422) due to validation errors.
 def test_create_checkin_invalid_mood(client):
@@ -178,3 +229,247 @@ def test_create_checkin_invalid_mood(client):
     )
 
     assert response.status_code == 422
+
+
+#  This test checks the behavior of the daily check-in endpoint when a user attempts to create a check-in with an invalid energy level value. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header and an invalid energy level value in the payload. The test verifies that the request fails (status code 422) due to validation errors.
+def test_create_checkin_invalid_energy(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "invalidenergy",
+            "email": "invalidenergy@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "invalidenergy@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-27",
+            "cycle_day": 5,
+            "energy_level": "Superhuman"
+        }
+    )
+
+    assert response.status_code == 422
+
+
+# This test checks the behavior of the daily check-in endpoint when a user attempts to create a check-in with an invalid energy level value. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header and an invalid energy level value in the payload. The test verifies that the request fails (status code 422) due to validation errors.
+def test_create_checkin_invalid_sleep(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "invalidsleep",
+            "email": "invalidsleep@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "invalidsleep@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-27",
+            "cycle_day": 5,
+            "sleep_quality": "Amazing"
+        }
+    )
+
+    assert response.status_code == 422
+
+#  This test checks the behavior of the daily check-in endpoint when a user attempts to retrieve their own check-ins. It first registers a user, logs in to obtain a JWT token, creates a check-in, and then sends a GET request to the /daily_checkins/ endpoint with the token included in the Authorization header. The test verifies that the retrieval is successful (status code 200) and that the returned data matches the created check-in.
+def test_get_own_checkins(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "historyuser",
+            "email": "history@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "history@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    # Create a check-in
+    client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-27",
+            "cycle_day": 5,
+            "mood": "Good"
+        }
+    )
+
+    # Retrieve check-ins
+    response = client.get(
+        "/daily_checkins/",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["date"] == "2026-09-27"
+    assert data[0]["cycle_day"] == 5
+
+
+
+#  This test checks the behavior of the daily check-in endpoint when a user attempts to retrieve check-ins created by another user. It first registers two users (User A and User B), logs in both users to obtain their respective JWT tokens, and then has User B create a check-in. Finally, it sends a GET request to the /daily_checkins/ endpoint with User A's token included in the Authorization header. The test verifies that User A cannot see User B's check-ins (the returned data is an empty list).
+def test_user_cannot_see_another_users_checkins(client):
+    # Register User A
+    client.post(
+        "/users/register",
+        json={
+            "username": "usera",
+            "email": "usera@example.com",
+            "password": "password123"
+        }
+    )
+
+    # Login User A
+    login_a = client.post(
+        "/users/login",
+        data={
+            "username": "usera@example.com",
+            "password": "password123"
+        }
+    )
+
+    token_a = login_a.json()["access_token"]
+
+    # Register User B
+    client.post(
+        "/users/register",
+        json={
+            "username": "userb",
+            "email": "userb@example.com",
+            "password": "password123"
+        }
+    )
+
+    # Login User B
+    login_b = client.post(
+        "/users/login",
+        data={
+            "username": "userb@example.com",
+            "password": "password123"
+        }
+    )
+
+    token_b = login_b.json()["access_token"]
+
+    # User B creates a check-in
+    client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token_b}"},
+        json={
+            "date": "2026-09-27",
+            "cycle_day": 10,
+            "mood": "Good"
+        }
+    )
+
+    # User A retrieves their check-ins
+    response = client.get(
+        "/daily_checkins/",
+        headers={"Authorization": f"Bearer {token_a}"}
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+#  This test checks the behavior of the daily check-in endpoint when a user creates multiple check-ins and then retrieves their history. It first registers a user, logs in to obtain a JWT token, creates two check-ins on different dates, and then sends a GET request to the /daily_checkins/ endpoint with the token included in the Authorization header. The test verifies that both check-ins are returned in the response (status code 200) and that the returned data matches the created check-ins.
+def test_get_multiple_checkins(client):
+    # Register user
+    client.post(
+        "/users/register",
+        json={
+            "username": "multipleuser",
+            "email": "multiple@example.com",
+            "password": "password123"
+        }
+    )
+
+    # Login
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "multiple@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    # Create first check-in
+    client.post(
+        "/daily_checkins/checkin",
+        headers=headers,
+        json={
+            "date": "2026-09-25",
+            "cycle_day": 3,
+            "mood": "Good"
+        }
+    )
+
+    # Create second check-in
+    client.post(
+        "/daily_checkins/checkin",
+        headers=headers,
+        json={
+            "date": "2026-09-26",
+            "cycle_day": 4,
+            "mood": "Excellent"
+        }
+    )
+
+    # Retrieve history
+    response = client.get(
+        "/daily_checkins/",
+        headers=headers
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 2
+    assert data[0]["date"] == "2026-09-26"
+    assert data[1]["date"] == "2026-09-25"

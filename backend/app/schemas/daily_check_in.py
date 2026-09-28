@@ -8,8 +8,8 @@ class DailyCheckInCreate(BaseModel):
     cycle_day: int | None = Field(default=None, ge=1)
     bbt: float | None = None
     mood: Literal["Excellent", "Good", "OK", "Bad", "Very Bad"] | None = None
-    energy_level: str | None = None
-    sleep_quality: str | None = None
+    energy_level: Literal["Very High","High", "Moderate", "Low", "Very Low"]| None = None
+    sleep_quality: Literal["Excellent", "Very Good", "Good", "Fair", "Poor"] | None = None
     notes: str | None = None
 
 

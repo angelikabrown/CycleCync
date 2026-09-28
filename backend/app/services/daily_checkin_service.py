@@ -1,4 +1,4 @@
-from http.client import HTTPException
+from fastapi import HTTPException
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -66,56 +66,3 @@ def get_daily_checkins(
     ).scalars().all()
 
     return daily_checkins
-
-
-
-#  This test checks the behavior of the daily check-in endpoint when attempting to create a duplicate check-in for the same date. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header. The test verifies that the first check-in creation is successful (status code 200) and that the second attempt to create a check-in for the same date fails (status code 400).
-def test_create_duplicate_checkin(client):
-    # Register user
-    client.post(
-        "/users/register",
-        json={
-            "username": "duplicatecheckin",
-            "email": "duplicatecheckin@example.com",
-            "password": "password123"
-        }
-    )
-
-    # Login
-    login_response = client.post(
-        "/users/login",
-        data={
-            "username": "duplicatecheckin@example.com",
-            "password": "password123"
-        }
-    )
-
-    token = login_response.json()["access_token"]
-
-    checkin = {
-        "date": "2026-09-27",
-        "cycle_day": 10,
-        "bbt": 97.5,
-        "mood": "Good",
-        "energy_level": "High",
-        "sleep_quality": "Good",
-        "notes": "Test check-in"
-    }
-
-    # First check-in should succeed
-    response = client.post(
-        "/daily_checkins/checkin",
-        headers={"Authorization": f"Bearer {token}"},
-        json=checkin
-    )
-
-    assert response.status_code == 200
-
-    # Second check-in for the same date should fail
-    response = client.post(
-        "/daily_checkins/checkin",
-        headers={"Authorization": f"Bearer {token}"},
-        json=checkin
-    )
-
-    assert response.status_code == 400
