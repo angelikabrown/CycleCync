@@ -90,3 +90,14 @@ def test_login_wrong_password(client):
     )
 
     assert response.status_code == 400
+
+def test_login_nonexistent_user(client):
+    response = client.post(
+        "/users/login",
+        data={
+            "username": "doesnotexist@example.com",
+            "password": "password123"
+        }
+    )
+
+    assert response.status_code == 400
