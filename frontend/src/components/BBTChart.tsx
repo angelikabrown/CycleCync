@@ -11,6 +11,7 @@ import {
 type DailyCheckIn = {
     id: number;
     date: string;
+    cycle_day: number | null;
     bbt: number | null;
 };
 
@@ -20,11 +21,15 @@ type BBTChartProps = {
 
 function BBTChart({ checkins }: BBTChartProps) {
     const bbtData = checkins
-        .filter((checkin) => checkin.bbt !== null)
+        .filter(
+            (checkin) =>
+                checkin.bbt !== null &&
+                checkin.cycle_day !== null
+        )
         .map((checkin) => ({
-            date: checkin.date,
+            cycleDay: checkin.cycle_day,
             bbt: checkin.bbt,
-        }));
+        })).sort((a, b) => a.cycleDay - b.cycleDay);
 
     if (bbtData.length === 0) {
         return <p>No BBT data available yet.</p>;
@@ -35,7 +40,7 @@ function BBTChart({ checkins }: BBTChartProps) {
             <LineChart data={bbtData}>
                 <CartesianGrid strokeDasharray="3 3" />
 
-                <XAxis dataKey="date" />
+                <XAxis dataKey="cycleDay" />
 
                 <YAxis
                     domain={["dataMin - 0.2", "dataMax + 0.2"]}
