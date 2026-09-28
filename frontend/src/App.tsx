@@ -1,10 +1,19 @@
 import { useState } from "react";
+import Login from "./components/Login";
+import Dashboard from "./components/Dashboard";
 import DailyCheckInForm from "./components/DailyCheckInForm";
 import CheckInHistory from "./components/CheckInHistory";
-import Dashboard from "./components/Dashboard";
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    !!sessionStorage.getItem("token")
+  );
+
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  if (!isLoggedIn) {
+    return <Login onLogin={() => setIsLoggedIn(true)} />;
+  }
 
   return (
     <div>

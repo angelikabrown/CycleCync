@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function Login() {
+function Login({ onLogin }: { onLogin: () => void }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -28,6 +28,8 @@ function Login() {
             const data = await response.json();
 
             sessionStorage.setItem("token", data.access_token);
+
+            onLogin();
 
             console.log("Login successful");
             console.log("Token:", data.access_token);
