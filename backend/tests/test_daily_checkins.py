@@ -144,3 +144,37 @@ def test_create_checkin_with_only_required_fields(client):
     )
 
     assert response.status_code == 200
+
+
+#  This test checks the behavior of the daily check-in endpoint when a user attempts to create a check-in with an invalid mood value. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header and an invalid mood value in the payload. The test verifies that the request fails (status code 422) due to validation errors.
+def test_create_checkin_invalid_mood(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "invalidmood",
+            "email": "invalidmood@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "invalidmood@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-27",
+            "cycle_day": 5,
+            "mood": "Terrible"
+        }
+    )
+
+    assert response.status_code == 422

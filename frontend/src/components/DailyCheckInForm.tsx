@@ -124,11 +124,11 @@ function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
                         onChange={(e) => setMood(e.target.value)}
                     >
                         <option value="">Select mood</option>
-                        <option value="Very Low">Very Low</option>
-                        <option value="Low">Low</option>
-                        <option value="Neutral">Neutral</option>
+                        <option value="Very Bad">Very Bad</option>
+                        <option value="Bad">Bad</option>
+                        <option value="OK">OK</option>
                         <option value="Good">Good</option>
-                        <option value="Very Good">Very Good</option>
+                        <option value="Excellent">Excellent</option>
                     </select>
                 </label>
 
