@@ -1,6 +1,7 @@
 import { useState } from "react";
-import CheckInHistory from "./components/CheckInHistory";
 import DailyCheckInForm from "./components/DailyCheckInForm";
+import CheckInHistory from "./components/CheckInHistory";
+import Dashboard from "./components/Dashboard";
 
 function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -8,6 +9,8 @@ function App() {
   return (
     <div>
       <h1>Hello CycleCync</h1>
+
+      <Dashboard />
 
       <DailyCheckInForm
         onCheckInSaved={() =>
