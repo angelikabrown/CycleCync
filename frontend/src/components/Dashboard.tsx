@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import BBTChart from "./BBTChart";
 
 type DailyCheckIn = {
     id: number;
@@ -50,16 +51,7 @@ function Dashboard() {
 
             <section>
                 <h2>BBT</h2>
-
-                {checkins.length === 0 ? (
-                    <p>No BBT data yet.</p>
-                ) : (
-                    checkins.map((checkin) => (
-                        <p key={checkin.id}>
-                            {checkin.date}: {checkin.bbt ?? "No BBT"}
-                        </p>
-                    ))
-                )}
+                <BBTChart checkins={checkins} />
             </section>
         </div>
     );
