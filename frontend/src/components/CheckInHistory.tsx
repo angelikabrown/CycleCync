@@ -33,6 +33,44 @@ function CheckInHistory({ refreshTrigger }: CheckInHistoryProps) {
         fetchCheckIns();
     }, [refreshTrigger]);
 
+    const handleDelete = async (checkinId: number) => {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this check-in?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        const token = sessionStorage.getItem("token");
+
+        try {
+            const response = await fetch(
+                `http://localhost:8000/daily_checkins/${checkinId}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            // Remove the deleted check-in from the UI
+            setCheckins((currentCheckins) =>
+                currentCheckins.filter(
+                    (checkin) => checkin.id !== checkinId
+                )
+            );
+        } catch (error) {
+            console.error("Delete Error:", error);
+            alert("Unable to delete this check-in.");
+        }
+    };
+
     return (
         <div>
             <h2>Daily Check-Ins</h2>
@@ -45,12 +83,20 @@ function CheckInHistory({ refreshTrigger }: CheckInHistoryProps) {
                         <p>
                             <strong>Date:</strong> {checkin.date}
                         </p>
+
                         <p>📅 CD: {checkin.cycle_day}</p>
                         <p>🌡 BBT: {checkin.bbt}</p>
                         <p>😊 Mood: {checkin.mood}</p>
                         <p>⚡ Energy: {checkin.energy_level}</p>
                         <p>😴 Sleep: {checkin.sleep_quality}</p>
                         <p>📝 Notes: {checkin.notes}</p>
+
+                        <button
+                            onClick={() => handleDelete(checkin.id)}
+                        >
+                            Delete
+                        </button>
+
                         <hr />
                     </div>
                 ))
