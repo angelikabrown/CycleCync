@@ -1,0 +1,88 @@
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+} from "recharts";
+
+import type { DailyCheckIn } from "../types/DailyCheckin";
+
+type SleepChartProps = {
+    checkins: DailyCheckIn[];
+};
+
+function SleepChart({ checkins }: SleepChartProps) {
+    const sleepValues: Record<string, number> = {
+        Poor: 1,
+        Average: 2,
+        Good: 3,
+    };
+
+    const sleepLabels: Record<number, string> = {
+        1: "Poor",
+        2: "Average",
+        3: "Good",
+    };
+
+    const chartData = checkins
+        .filter(
+            (checkin) =>
+                checkin.cycle_day !== null &&
+                checkin.sleep_quality !== null
+        )
+        .map((checkin) => ({
+            cycleDay: checkin.cycle_day,
+            sleep: sleepValues[checkin.sleep_quality!],
+        }))
+        .filter((checkin) => checkin.sleep !== undefined)
+        .sort((a, b) => a.cycleDay! - b.cycleDay!);
+
+    if (chartData.length === 0) {
+        return <p>No sleep data available yet.</p>;
+    }
+
+    return (
+        <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+
+                <XAxis
+                    dataKey="cycleDay"
+                    label={{
+                        value: "Cycle Day",
+                        position: "insideBottom",
+                        offset: -5,
+                    }}
+                />
+
+                <YAxis
+                    domain={[1, 3]}
+                    ticks={[1, 2, 3]}
+                    tickFormatter={(value) => sleepLabels[value]}
+                />
+
+                <Tooltip
+                    formatter={(value) => [
+                        sleepLabels[value as number],
+                        "Sleep",
+                    ]}
+                    labelFormatter={(cycleDay) =>
+                        `Cycle Day ${cycleDay}`
+                    }
+                />
+
+                <Line
+                    type="monotone"
+                    dataKey="sleep"
+                    strokeWidth={2}
+                    dot
+                />
+            </LineChart>
+        </ResponsiveContainer>
+    );
+}
+
+export default SleepChart;

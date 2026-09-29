@@ -1,15 +1,5 @@
 import { useEffect, useState } from "react";
-
-type DailyCheckIn = {
-    id: number;
-    date: string;
-    cycle_day: number | null;
-    bbt: number | null;
-    mood: string | null;
-    energy_level: string | null;
-    sleep_quality: string | null;
-    notes: string | null;
-};
+import type { DailyCheckIn } from "../types/DailyCheckin";
 
 type CheckInHistoryProps = {
     refreshTrigger: number;
