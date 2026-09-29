@@ -105,3 +105,39 @@ def delete_daily_checkin(
     db.commit()
 
     return checkin
+
+def update_daily_checkin(
+    db: Session,
+    checkin_id: int,
+    daily_check_in: DailyCheckInCreate,
+    current_user: User
+):
+    """
+    Update a daily check-in belonging to the current user.
+    """
+
+    checkin = db.execute(
+        select(DailyCheckIn).where(
+            DailyCheckIn.id == checkin_id,
+            DailyCheckIn.user_id == current_user.id
+        )
+    ).scalar_one_or_none()
+
+    if checkin is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Daily check-in not found"
+        )
+
+    checkin.date = daily_check_in.date
+    checkin.cycle_day = daily_check_in.cycle_day
+    checkin.bbt = daily_check_in.bbt
+    checkin.mood = daily_check_in.mood
+    checkin.energy_level = daily_check_in.energy_level
+    checkin.sleep_quality = daily_check_in.sleep_quality
+    checkin.notes = daily_check_in.notes
+
+    db.commit()
+    db.refresh(checkin)
+
+    return checkin

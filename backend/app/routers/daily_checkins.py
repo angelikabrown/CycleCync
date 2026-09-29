@@ -6,6 +6,7 @@ from app.services.daily_checkin_service import (
     create_daily_checkin,
     get_daily_checkins,
     delete_daily_checkin,
+    update_daily_checkin,
 )
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -69,3 +70,23 @@ def delete_check_in(
     )
 
     return deleted_checkin
+
+@router.put("/{checkin_id}", response_model=DailyCheckInResponse)
+def update_check_in(
+    checkin_id: int,
+    daily_check_in: DailyCheckInCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update a daily check-in belonging to the current user.
+    """
+
+    updated_checkin = update_daily_checkin(
+        db,
+        checkin_id,
+        daily_check_in,
+        current_user
+    )
+
+    return updated_checkin
