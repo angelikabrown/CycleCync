@@ -2,7 +2,11 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas.daily_check_in import DailyCheckInCreate, DailyCheckInResponse
 from app.utils.auth import get_current_user
-from app.services.daily_checkin_service import create_daily_checkin, get_daily_checkins
+from app.services.daily_checkin_service import (
+    create_daily_checkin,
+    get_daily_checkins,
+    delete_daily_checkin,
+)
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -46,3 +50,22 @@ def get_daily_check_ins(db: Session = Depends(get_db),
     daily_check_ins = get_daily_checkins(db, current_user)
 
     return daily_check_ins
+
+
+@router.delete("/{checkin_id}", response_model=DailyCheckInResponse)
+def delete_check_in(
+    checkin_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Delete a daily check-in belonging to the current user.
+    """
+
+    deleted_checkin = delete_daily_checkin(
+        db,
+        checkin_id,
+        current_user
+    )
+
+    return deleted_checkin

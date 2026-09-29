@@ -66,3 +66,42 @@ def get_daily_checkins(
     ).scalars().all()
 
     return daily_checkins
+
+def delete_daily_checkin(
+    db: Session,
+    checkin_id: int,
+    current_user: User
+):
+    """
+    Delete a daily check-in belonging to the current user.
+
+    Args:
+        db (Session): The database session.
+        checkin_id (int): The ID of the check-in to delete.
+        current_user (User): The currently authenticated user.
+
+    Returns:
+        DailyCheckIn: The deleted check-in.
+
+    Raises:
+        HTTPException: If the check-in does not exist or does not belong
+        to the current user.
+    """
+
+    checkin = db.execute(
+        select(DailyCheckIn).where(
+            DailyCheckIn.id == checkin_id,
+            DailyCheckIn.user_id == current_user.id
+        )
+    ).scalar_one_or_none()
+
+    if checkin is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Daily check-in not found"
+        )
+
+    db.delete(checkin)
+    db.commit()
+
+    return checkin

@@ -473,3 +473,228 @@ def test_get_multiple_checkins(client):
     assert len(data) == 2
     assert data[0]["date"] == "2026-09-26"
     assert data[1]["date"] == "2026-09-25"
+
+
+
+def test_delete_own_checkin(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "deleteuser",
+            "email": "delete@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "delete@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    create_response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-28",
+            "cycle_day": 6,
+            "mood": "Good"
+        }
+    )
+
+    checkin_id = create_response.json()["id"]
+
+    response = client.delete(
+        f"/daily_checkins/{checkin_id}",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["id"] == checkin_id
+
+
+def test_deleted_checkin_is_gone(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "goneuser",
+            "email": "gone@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "gone@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    create_response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-28",
+            "cycle_day": 6,
+            "mood": "Good"
+        }
+    )
+
+    checkin_id = create_response.json()["id"]
+
+    delete_response = client.delete(
+        f"/daily_checkins/{checkin_id}",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert delete_response.status_code == 200
+
+    history_response = client.get(
+        "/daily_checkins/",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert history_response.status_code == 200
+
+    data = history_response.json()
+
+    assert all(
+        checkin["id"] != checkin_id
+        for checkin in data
+    )
+
+
+def test_user_cannot_delete_another_users_checkin(client):
+    # Create first user
+    client.post(
+        "/users/register",
+        json={
+            "username": "firstuser",
+            "email": "first@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "first@example.com",
+            "password": "password123"
+        }
+    )
+
+    first_token = login_response.json()["access_token"]
+
+    # Create first user's check-in
+    create_response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {first_token}"},
+        json={
+            "date": "2026-09-28",
+            "cycle_day": 6,
+            "mood": "Good"
+        }
+    )
+
+    checkin_id = create_response.json()["id"]
+
+    # Create second user
+    client.post(
+        "/users/register",
+        json={
+            "username": "seconduser",
+            "email": "second@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "second@example.com",
+            "password": "password123"
+        }
+    )
+
+    second_token = login_response.json()["access_token"]
+
+    # Second user attempts to delete first user's check-in
+    response = client.delete(
+        f"/daily_checkins/{checkin_id}",
+        headers={"Authorization": f"Bearer {second_token}"}
+    )
+
+    assert response.status_code == 404
+
+def test_delete_nonexistent_checkin(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "missinguser",
+            "email": "missing@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "missing@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    response = client.delete(
+        "/daily_checkins/999999",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 404
+
+def test_delete_checkin_requires_authentication(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "noauthuser",
+            "email": "noauth@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "noauth@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    create_response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-28",
+            "cycle_day": 6,
+            "mood": "Good"
+        }
+    )
+
+    checkin_id = create_response.json()["id"]
+
+    response = client.delete(
+        f"/daily_checkins/{checkin_id}"
+    )
+
+    assert response.status_code in [401, 403]
+
