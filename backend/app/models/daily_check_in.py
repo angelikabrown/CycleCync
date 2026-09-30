@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     Column,
+    Boolean,
     Date,
     DateTime,
     Float,
@@ -14,6 +15,7 @@ from sqlalchemy.orm import relationship
 
 from app.database import Base
 
+
 class DailyCheckIn(Base):
 
     __tablename__ = "daily_check_ins"
@@ -22,6 +24,7 @@ class DailyCheckIn(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     date = Column(Date, nullable=False)
     cycle_day = Column(Integer, nullable=True)
+    period = Column(Boolean, nullable=False, default=False)
     bbt = Column(Float, nullable=True)
     mood = Column(String(20), nullable=True)
     energy_level = Column(String(20), nullable=True)
