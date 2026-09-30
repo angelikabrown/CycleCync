@@ -6,43 +6,52 @@ from app.models.daily_check_in import DailyCheckIn
 from app.models.user import User
 from app.utils.auth import get_current_user
 from app.schemas.daily_check_in import DailyCheckInCreate
+from app.services.cycle_service import get_cycle_day
 
 
-def create_daily_checkin(db: Session, daily_check_in: DailyCheckInCreate, current_user: User):
+def create_daily_checkin(
+    db: Session,
+    daily_check_in: DailyCheckInCreate,
+    current_user: User
+):
     """
     Create a new daily check-in for the current user.
 
-
-    Args:
-        db (Session): The database session.
-        daily_check_in (DailyCheckInCreate): The daily check-in data.
-        current_user (User): The currently authenticated user.
-    
-    Returns:
-        DailyCheckIn: The created daily check-in instance.
+    Cycle day is calculated automatically from the most recent
+    period start. The user does not manually enter cycle day.
     """
-    
+
     existing_checkin = db.execute(
         select(DailyCheckIn).where(
             DailyCheckIn.user_id == current_user.id,
             DailyCheckIn.date == daily_check_in.date,
         )
-        ).scalar_one_or_none()
-    
+    ).scalar_one_or_none()
+
     if existing_checkin is not None:
-        raise HTTPException(status_code=400, detail="Daily check-in for this date already exists")
-    
+        raise HTTPException(
+            status_code=400,
+            detail="Daily check-in for this date already exists"
+        )
+
+    cycle_day = get_cycle_day(
+        db,
+        current_user,
+        daily_check_in.date
+    )
+
     new_checkin = DailyCheckIn(
-        date = daily_check_in.date, 
-        cycle_day=daily_check_in.cycle_day,
-        period=daily_check_in.period, 
-        bbt=daily_check_in.bbt, 
-        mood=daily_check_in.mood, 
-        energy_level=daily_check_in.energy_level, 
-        sleep_quality=daily_check_in.sleep_quality, 
-        notes=daily_check_in.notes, 
-        user_id=current_user.id)
-    
+        date=daily_check_in.date,
+        cycle_day=cycle_day,
+        period=daily_check_in.period,
+        bbt=daily_check_in.bbt,
+        mood=daily_check_in.mood,
+        energy_level=daily_check_in.energy_level,
+        sleep_quality=daily_check_in.sleep_quality,
+        notes=daily_check_in.notes,
+        user_id=current_user.id,
+    )
+
     db.add(new_checkin)
     db.commit()
     db.refresh(new_checkin)

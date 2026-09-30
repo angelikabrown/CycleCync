@@ -15,9 +15,10 @@ function DailyCheckInForm({
     const [date, setDate] = useState(
         new Date().toISOString().split("T")[0]
     );
-    const [cycleDay, setCycleDay] = useState("");
+
     const [bbt, setBbt] = useState("");
     const [mood, setMood] = useState("");
+    const [period, setPeriod] = useState(false);
     const [energyLevel, setEnergyLevel] = useState("");
     const [sleepQuality, setSleepQuality] = useState("");
     const [notes, setNotes] = useState("");
@@ -28,16 +29,15 @@ function DailyCheckInForm({
     useEffect(() => {
         if (checkinToEdit) {
             setDate(checkinToEdit.date);
-            setCycleDay(
-                checkinToEdit.cycle_day !== null
-                    ? String(checkinToEdit.cycle_day)
-                    : ""
-            );
+
+            setPeriod(checkinToEdit.period ?? false);
+
             setBbt(
                 checkinToEdit.bbt !== null
                     ? String(checkinToEdit.bbt)
                     : ""
             );
+
             setMood(checkinToEdit.mood ?? "");
             setEnergyLevel(checkinToEdit.energy_level ?? "");
             setSleepQuality(checkinToEdit.sleep_quality ?? "");
@@ -53,7 +53,7 @@ function DailyCheckInForm({
 
         const checkInData = {
             date: date,
-            cycle_day: cycleDay ? Number(cycleDay) : null,
+            period: period,
             bbt: bbt ? Number(bbt) : null,
             mood: mood || null,
             energy_level: energyLevel || null,
@@ -95,10 +95,11 @@ function DailyCheckInForm({
 
                 onCheckInSaved();
 
+                // Reset form after a new check-in is saved
                 setDate(
                     new Date().toISOString().split("T")[0]
                 );
-                setCycleDay("");
+                setPeriod(false);
                 setBbt("");
                 setMood("");
                 setEnergyLevel("");
@@ -137,15 +138,14 @@ function DailyCheckInForm({
                 <br />
 
                 <label>
-                    Cycle Day:
                     <input
-                        type="number"
-                        min="1"
-                        value={cycleDay}
+                        type="checkbox"
+                        checked={period}
                         onChange={(e) =>
-                            setCycleDay(e.target.value)
+                            setPeriod(e.target.checked)
                         }
                     />
+                    Period today
                 </label>
 
                 <br />
@@ -178,8 +178,12 @@ function DailyCheckInForm({
                         <option value="Very Bad">
                             Very Bad
                         </option>
-                        <option value="Bad">Bad</option>
-                        <option value="OK">OK</option>
+                        <option value="Bad">
+                            Bad
+                        </option>
+                        <option value="OK">
+                            OK
+                        </option>
                         <option value="Good">
                             Good
                         </option>
@@ -205,11 +209,15 @@ function DailyCheckInForm({
                         <option value="Very Low">
                             Very Low
                         </option>
-                        <option value="Low">Low</option>
+                        <option value="Low">
+                            Low
+                        </option>
                         <option value="Moderate">
                             Moderate
                         </option>
-                        <option value="High">High</option>
+                        <option value="High">
+                            High
+                        </option>
                         <option value="Very High">
                             Very High
                         </option>
