@@ -3,6 +3,7 @@ import BBTChart from "./BBTChart";
 import MoodChart from "./MoodChart";
 import EnergyChart from "./EnergyChart";
 import SleepChart from "./SleepChart";
+import Calendar from "./Calendar";
 
 type DailyCheckIn = {
     id: number;
@@ -44,205 +45,177 @@ function Dashboard() {
             });
     }, []);
 
-    const latestCheckin = checkins[0];
-
     return (
-        <div className="min-h-screen bg-[#F3F1EA] text-[#173B32]">
-            <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        <main className="min-h-screen bg-[#F4F1EA] px-4 py-6 sm:px-6 lg:px-8">
 
+            {/* Page Header */}
+            <div className="mx-auto max-w-5xl">
 
+                <header className="mb-6">
+                    <p className="text-sm font-medium text-[#5B7F71]">
+                        CycleCync
+                    </p>
 
-                {/* Header */}
-                <header className="mb-7">
-                    <div className="mb-3 inline-flex rounded-full bg-[#DDE9E1] px-3 py-1 text-xs font-semibold tracking-widest text-[#245544]">
-                        CYCLECYNC
-                    </div>
-
-                    <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                    <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#24352F] sm:text-4xl">
                         Your cycle, your patterns.
                     </h1>
 
-                    <p className="mt-2 max-w-xl text-sm leading-6 text-[#61756D] sm:text-base">
-                        Keep track of your daily data and start noticing
-                        what your cycle looks like over time.
+                    <p className="mt-2 max-w-xl text-sm leading-6 text-[#6B6B65]">
+                        Track your daily data and see how your patterns
+                        change throughout your cycle.
                     </p>
                 </header>
 
-                {/* Cycle summary */}
-                <section className="mb-8 overflow-hidden rounded-[28px] bg-[#245544] shadow-lg">
-                    <div className="p-6 text-white sm:p-8">
+                {/* Current Cycle Card */}
+                <section className="mb-6 overflow-hidden rounded-3xl bg-[#315C4E] p-6 text-white shadow-sm">
+                    <p className="text-sm font-medium text-[#D8E8E1]">
+                        Current Cycle
+                    </p>
 
-                        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="mt-2 flex items-end justify-between">
+                        <div>
+                            <p className="text-4xl font-bold">
+                                Day {checkins[0]?.cycle_day ?? "—"}
+                            </p>
 
-                            <div>
-                                <p className="text-sm font-medium text-[#C9DED4]">
-                                    Current cycle
-                                </p>
+                            <p className="mt-1 text-sm text-[#D8E8E1]">
+                                Based on your latest check-in
+                            </p>
+                        </div>
 
-                                <div className="mt-1 flex items-baseline gap-2">
-                                    <span className="text-5xl font-bold">
-                                        {latestCheckin?.cycle_day ?? "—"}
-                                    </span>
+                        <div className="rounded-2xl bg-white/10 px-4 py-3 text-right">
+                            <p className="text-xs text-[#D8E8E1]">
+                                Days logged
+                            </p>
 
-                                    <span className="text-base text-[#C9DED4]">
-                                        cycle day
-                                    </span>
-                                </div>
-
-                                <p className="mt-2 text-sm text-[#C9DED4]">
-                                    {latestCheckin
-                                        ? "Based on your latest check-in"
-                                        : "Start checking in to see your cycle"}
-                                </p>
-                            </div>
-
-                            <div className="rounded-2xl bg-[#376B5A] px-5 py-4">
-                                <p className="text-xs font-medium uppercase tracking-wide text-[#C9DED4]">
-                                    Latest check-in
-                                </p>
-
-                                <p className="mt-1 text-lg font-semibold">
-                                    {latestCheckin?.date ?? "No data yet"}
-                                </p>
-                            </div>
-
+                            <p className="text-xl font-semibold">
+                                {checkins.length}
+                            </p>
                         </div>
                     </div>
                 </section>
 
-                {/* Patterns heading */}
-                <div className="mb-5">
-                    <h2 className="text-2xl font-bold">
-                        Your patterns
+                {/* Calendar */}
+                <section className="mb-6">
+                    <div className="mb-3">
+                        <h2 className="text-xl font-bold text-[#24352F]">
+                            Your Calendar
+                        </h2>
+
+                        <p className="mt-1 text-sm text-[#6B6B65]">
+                            Select a day to see what you recorded.
+                        </p>
+                    </div>
+
+                    <Calendar checkins={checkins} />
+                </section>
+
+                {/* Patterns Heading */}
+                <div className="mb-4">
+                    <h2 className="text-xl font-bold text-[#24352F]">
+                        Your Patterns
                     </h2>
 
-                    <p className="mt-1 text-sm text-[#657870]">
-                        See how your daily measurements change across
-                        your cycle.
+                    <p className="mt-1 text-sm text-[#6B6B65]">
+                        Explore how your daily measurements change
+                        throughout your cycle.
                     </p>
                 </div>
 
                 {/* Charts */}
-                <div className="grid gap-5 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
                     {/* BBT */}
-                    <section className="rounded-[28px] bg-[#E9E2F5] p-5 shadow-sm sm:p-6">
-                        <div className="mb-4 flex items-start justify-between">
-                            <div>
-                                <h3 className="text-lg font-bold text-[#463765]">
-                                    Basal Body Temperature
-                                </h3>
-
-                                <p className="mt-1 text-sm text-[#685C7D]">
-                                    Temperature by cycle day
-                                </p>
-                            </div>
-
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#D5C8EA] text-xl">
-                                🌡
-                            </div>
-                        </div>
-
-                        <div className="overflow-hidden rounded-2xl bg-[#F6F2FA] p-2">
-                            <BBTChart checkins={checkins} />
-                        </div>
-                    </section>
-
-                    {/* Mood */}
-                    <section className="rounded-[28px] bg-[#E5DDF2] p-5 shadow-sm sm:p-6">
-                        <div className="mb-4 flex items-start justify-between">
-                            <div>
-                                <h3 className="text-lg font-bold text-[#463765]">
-                                    Mood
-                                </h3>
-
-                                <p className="mt-1 text-sm text-[#685C7D]">
-                                    How you've been feeling
-                                </p>
-                            </div>
-
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#D0C3E5] text-xl">
-                                ◌
-                            </div>
-                        </div>
-
-                        <div className="overflow-hidden rounded-2xl bg-[#F5F1F9] p-2">
-                            <MoodChart checkins={checkins} />
-                        </div>
-                    </section>
-
-                    {/* Energy */}
-                    <section className="rounded-[28px] bg-[#F6E3C8] p-5 shadow-sm sm:p-6">
-                        <div className="mb-4 flex items-start justify-between">
-                            <div>
-                                <h3 className="text-lg font-bold text-[#754719]">
-                                    Energy
-                                </h3>
-
-                                <p className="mt-1 text-sm text-[#89694B]">
-                                    Your energy across the cycle
-                                </p>
-                            </div>
-
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EBCB9F] text-xl">
-                                ☀
-                            </div>
-                        </div>
-
-                        <div className="overflow-hidden rounded-2xl bg-[#FCF4E8] p-2">
-                            <EnergyChart checkins={checkins} />
-                        </div>
-                    </section>
-
-                    {/* Sleep */}
-                    <section className="rounded-[28px] bg-[#DDE9F0] p-5 shadow-sm sm:p-6">
-                        <div className="mb-4 flex items-start justify-between">
-                            <div>
-                                <h3 className="text-lg font-bold text-[#31566B]">
-                                    Sleep
-                                </h3>
-
-                                <p className="mt-1 text-sm text-[#5E7482]">
-                                    Your sleep quality
-                                </p>
-                            </div>
-
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#C3D9E5] text-xl">
-                                ☾
-                            </div>
-                        </div>
-
-                        <div className="overflow-hidden rounded-2xl bg-[#F1F7FA] p-2">
-                            <SleepChart checkins={checkins} />
-                        </div>
-                    </section>
-
-                </div>
-
-                {/* Compare */}
-                <section className="mt-7 rounded-[28px] bg-[#DDE9E1] p-5 shadow-sm sm:p-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-                        <div>
-                            <h3 className="text-lg font-bold text-[#245544]">
-                                Compare your patterns
+                    <section className="rounded-3xl bg-[#E8E0F2] p-5 shadow-sm">
+                        <div className="mb-4">
+                            <h3 className="text-lg font-bold text-[#433B52]">
+                                Basal Body Temperature
                             </h3>
 
-                            <p className="mt-1 max-w-xl text-sm leading-6 text-[#587066]">
-                                Explore connections between your cycle,
-                                mood, energy, sleep, and temperature.
+                            <p className="text-sm text-[#6E6678]">
+                                Temperature changes across your cycle.
                             </p>
                         </div>
 
-                        <span className="w-fit rounded-full bg-[#B9D4C5] px-4 py-2 text-xs font-bold text-[#245544]">
-                            Coming soon
-                        </span>
+                        <BBTChart checkins={checkins} />
+                    </section>
 
+                    {/* Mood */}
+                    <section className="rounded-3xl bg-[#EEE8F7] p-5 shadow-sm">
+                        <div className="mb-4">
+                            <h3 className="text-lg font-bold text-[#433B52]">
+                                Mood
+                            </h3>
+
+                            <p className="text-sm text-[#6E6678]">
+                                How your mood changes from day to day.
+                            </p>
+                        </div>
+
+                        <MoodChart checkins={checkins} />
+                    </section>
+
+                    {/* Energy */}
+                    <section className="rounded-3xl bg-[#F7E4CF] p-5 shadow-sm">
+                        <div className="mb-4">
+                            <h3 className="text-lg font-bold text-[#65452D]">
+                                Energy
+                            </h3>
+
+                            <p className="text-sm text-[#80644E]">
+                                Notice changes in your energy levels.
+                            </p>
+                        </div>
+
+                        <EnergyChart checkins={checkins} />
+                    </section>
+
+                    {/* Sleep */}
+                    <section className="rounded-3xl bg-[#DDEBF0] p-5 shadow-sm">
+                        <div className="mb-4">
+                            <h3 className="text-lg font-bold text-[#34515C]">
+                                Sleep
+                            </h3>
+
+                            <p className="text-sm text-[#5E737C]">
+                                See how your sleep quality changes.
+                            </p>
+                        </div>
+
+                        <SleepChart checkins={checkins} />
+                    </section>
+                </div>
+
+                {/* Compare */}
+                <section className="mt-6 rounded-3xl bg-[#DDD7E8] p-6 shadow-sm">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-[#665D75]">
+                                Explore your data
+                            </p>
+
+                            <h2 className="mt-1 text-xl font-bold text-[#393246]">
+                                Compare your patterns
+                            </h2>
+
+                            <p className="mt-1 max-w-lg text-sm leading-6 text-[#665D75]">
+                                Compare mood, energy, sleep, and other
+                                measurements to look for relationships
+                                in your own data.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="rounded-xl bg-[#315C4E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#264A3F]"
+                        >
+                            Compare
+                        </button>
                     </div>
                 </section>
 
-            </main>
-        </div>
+            </div>
+        </main>
     );
 }
 
