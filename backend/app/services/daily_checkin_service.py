@@ -34,7 +34,8 @@ def create_daily_checkin(db: Session, daily_check_in: DailyCheckInCreate, curren
     
     new_checkin = DailyCheckIn(
         date = daily_check_in.date, 
-        cycle_day=daily_check_in.cycle_day, 
+        cycle_day=daily_check_in.cycle_day,
+        period=daily_check_in.period, 
         bbt=daily_check_in.bbt, 
         mood=daily_check_in.mood, 
         energy_level=daily_check_in.energy_level, 
