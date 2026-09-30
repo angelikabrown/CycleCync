@@ -698,3 +698,267 @@ def test_delete_checkin_requires_authentication(client):
 
     assert response.status_code in [401, 403]
 
+def test_update_own_checkin(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "updateuser",
+            "email": "update@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "update@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    # Create the original check-in
+    create_response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-29",
+            "cycle_day": 7,
+            "mood": "Good",
+            "energy_level": "Moderate",
+            "sleep_quality": "Good"
+        }
+    )
+
+    assert create_response.status_code == 200
+
+    checkin_id = create_response.json()["id"]
+
+    # Update the check-in
+    response = client.put(
+        f"/daily_checkins/{checkin_id}",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-29",
+            "cycle_day": 7,
+            "mood": "Excellent",
+            "energy_level": "High",
+            "sleep_quality": "Very Good",
+            "notes": "Feeling much better today."
+        }
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["id"] == checkin_id
+    assert data["date"] == "2026-09-29"
+    assert data["cycle_day"] == 7
+    assert data["mood"] == "Excellent"
+    assert data["energy_level"] == "High"
+    assert data["sleep_quality"] == "Very Good"
+    assert data["notes"] == "Feeling much better today."
+
+def test_updated_checkin_persists(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "persistuser",
+            "email": "persist@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "persist@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    create_response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-29",
+            "cycle_day": 7,
+            "mood": "Bad"
+        }
+    )
+
+    checkin_id = create_response.json()["id"]
+
+    client.put(
+        f"/daily_checkins/{checkin_id}",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-29",
+            "cycle_day": 7,
+            "mood": "Good"
+        }
+    )
+
+    # Retrieve check-ins
+    response = client.get(
+        "/daily_checkins/",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["id"] == checkin_id
+    assert data[0]["mood"] == "Good"
+
+def test_user_cannot_update_another_users_checkin(client):
+    # First user
+    client.post(
+        "/users/register",
+        json={
+            "username": "firstupdate",
+            "email": "firstupdate@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "firstupdate@example.com",
+            "password": "password123"
+        }
+    )
+
+    first_token = login_response.json()["access_token"]
+
+    # First user's check-in
+    create_response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {first_token}"},
+        json={
+            "date": "2026-09-29",
+            "cycle_day": 7,
+            "mood": "Good"
+        }
+    )
+
+    checkin_id = create_response.json()["id"]
+
+    # Second user
+    client.post(
+        "/users/register",
+        json={
+            "username": "secondupdate",
+            "email": "secondupdate@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "secondupdate@example.com",
+            "password": "password123"
+        }
+    )
+
+    second_token = login_response.json()["access_token"]
+
+    # Second user attempts to update first user's check-in
+    response = client.put(
+        f"/daily_checkins/{checkin_id}",
+        headers={"Authorization": f"Bearer {second_token}"},
+        json={
+            "date": "2026-09-29",
+            "cycle_day": 7,
+            "mood": "Excellent"
+        }
+    )
+
+    assert response.status_code == 404
+
+def test_update_nonexistent_checkin(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "missingupdate",
+            "email": "missingupdate@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "missingupdate@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    response = client.put(
+        "/daily_checkins/999999",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-29",
+            "cycle_day": 7,
+            "mood": "Good"
+        }
+    )
+
+    assert response.status_code == 404
+
+def test_update_checkin_requires_authentication(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "noauthupdate",
+            "email": "noauthupdate@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "noauthupdate@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    create_response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-09-29",
+            "cycle_day": 7,
+            "mood": "Good"
+        }
+    )
+
+    checkin_id = create_response.json()["id"]
+
+    # No Authorization header
+    response = client.put(
+        f"/daily_checkins/{checkin_id}",
+        json={
+            "date": "2026-09-29",
+            "cycle_day": 7,
+            "mood": "Excellent"
+        }
+    )
+
+    assert response.status_code in [401, 403]
+
+
+

@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { DailyCheckIn } from "../types/DailyCheckin";
 
 type DailyCheckInFormProps = {
     onCheckInSaved: () => void;
+    checkinToEdit?: DailyCheckIn | null;
+    onEditComplete?: () => void;
 };
 
-function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
+function DailyCheckInForm({
+    onCheckInSaved,
+    checkinToEdit = null,
+    onEditComplete,
+}: DailyCheckInFormProps) {
     const [date, setDate] = useState(
         new Date().toISOString().split("T")[0]
     );
@@ -15,6 +22,29 @@ function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
     const [sleepQuality, setSleepQuality] = useState("");
     const [notes, setNotes] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+
+    const isEditing = checkinToEdit !== null;
+
+    useEffect(() => {
+        if (checkinToEdit) {
+            setDate(checkinToEdit.date);
+            setCycleDay(
+                checkinToEdit.cycle_day !== null
+                    ? String(checkinToEdit.cycle_day)
+                    : ""
+            );
+            setBbt(
+                checkinToEdit.bbt !== null
+                    ? String(checkinToEdit.bbt)
+                    : ""
+            );
+            setMood(checkinToEdit.mood ?? "");
+            setEnergyLevel(checkinToEdit.energy_level ?? "");
+            setSleepQuality(checkinToEdit.sleep_quality ?? "");
+            setNotes(checkinToEdit.notes ?? "");
+            setSuccessMessage("");
+        }
+    }, [checkinToEdit]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,53 +62,64 @@ function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
         };
 
         try {
-            const response = await fetch(
-                "http://localhost:8000/daily_checkins/checkin",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(checkInData),
-                }
-            );
+            const url = isEditing
+                ? `http://localhost:8000/daily_checkins/${checkinToEdit.id}`
+                : "http://localhost:8000/daily_checkins/checkin";
+
+            const response = await fetch(url, {
+                method: isEditing ? "PUT" : "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(checkInData),
+            });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.log("Backend error:", errorData);
 
                 throw new Error(
-                    errorData.detail || "Failed to save check-in data"
+                    errorData.detail ||
+                    "Failed to save check-in data"
                 );
             }
-            console.log("Check-in saved!");
 
-            onCheckInSaved();
+            if (isEditing) {
+                setSuccessMessage("Check-in updated!");
 
-            setSuccessMessage("Check-in saved!");
+                if (onEditComplete) {
+                    onEditComplete();
+                }
+            } else {
+                setSuccessMessage("Check-in saved!");
 
-            setDate(new Date().toISOString().split("T")[0]);
-            setCycleDay("");
-            setBbt("");
-            setMood("");
-            setEnergyLevel("");
-            setSleepQuality("");
-            setNotes("");
+                onCheckInSaved();
 
+                setDate(
+                    new Date().toISOString().split("T")[0]
+                );
+                setCycleDay("");
+                setBbt("");
+                setMood("");
+                setEnergyLevel("");
+                setSleepQuality("");
+                setNotes("");
+            }
         } catch (error) {
-            console.error("Error during check-in submission:", error);
+            console.error(
+                "Error during check-in submission:",
+                error
+            );
         }
     };
 
-
     return (
-
-
         <div>
-            <h2>Daily Check-In</h2>
-
-
+            <h2>
+                {isEditing
+                    ? "Edit Check-In"
+                    : "Daily Check-In"}
+            </h2>
 
             <form onSubmit={handleSubmit}>
                 <label>
@@ -86,7 +127,9 @@ function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
                     <input
                         type="date"
                         value={date}
-                        onChange={(e) => setDate(e.target.value)}
+                        onChange={(e) =>
+                            setDate(e.target.value)
+                        }
                         required
                     />
                 </label>
@@ -99,7 +142,9 @@ function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
                         type="number"
                         min="1"
                         value={cycleDay}
-                        onChange={(e) => setCycleDay(e.target.value)}
+                        onChange={(e) =>
+                            setCycleDay(e.target.value)
+                        }
                     />
                 </label>
 
@@ -111,7 +156,9 @@ function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
                         type="number"
                         step="0.1"
                         value={bbt}
-                        onChange={(e) => setBbt(e.target.value)}
+                        onChange={(e) =>
+                            setBbt(e.target.value)
+                        }
                     />
                 </label>
 
@@ -121,14 +168,24 @@ function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
                     Mood:
                     <select
                         value={mood}
-                        onChange={(e) => setMood(e.target.value)}
+                        onChange={(e) =>
+                            setMood(e.target.value)
+                        }
                     >
-                        <option value="">Select mood</option>
-                        <option value="Very Bad">Very Bad</option>
+                        <option value="">
+                            Select mood
+                        </option>
+                        <option value="Very Bad">
+                            Very Bad
+                        </option>
                         <option value="Bad">Bad</option>
                         <option value="OK">OK</option>
-                        <option value="Good">Good</option>
-                        <option value="Excellent">Excellent</option>
+                        <option value="Good">
+                            Good
+                        </option>
+                        <option value="Excellent">
+                            Excellent
+                        </option>
                     </select>
                 </label>
 
@@ -138,14 +195,24 @@ function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
                     Energy:
                     <select
                         value={energyLevel}
-                        onChange={(e) => setEnergyLevel(e.target.value)}
+                        onChange={(e) =>
+                            setEnergyLevel(e.target.value)
+                        }
                     >
-                        <option value="">Select energy level</option>
-                        <option value="Very Low">Very Low</option>
+                        <option value="">
+                            Select energy level
+                        </option>
+                        <option value="Very Low">
+                            Very Low
+                        </option>
                         <option value="Low">Low</option>
-                        <option value="Moderate">Moderate</option>
+                        <option value="Moderate">
+                            Moderate
+                        </option>
                         <option value="High">High</option>
-                        <option value="Very High">Very High</option>
+                        <option value="Very High">
+                            Very High
+                        </option>
                     </select>
                 </label>
 
@@ -155,14 +222,28 @@ function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
                     Sleep Quality:
                     <select
                         value={sleepQuality}
-                        onChange={(e) => setSleepQuality(e.target.value)}
+                        onChange={(e) =>
+                            setSleepQuality(e.target.value)
+                        }
                     >
-                        <option value="">Select sleep quality</option>
-                        <option value="Poor">Poor</option>
-                        <option value="Fair">Fair</option>
-                        <option value="Good">Good</option>
-                        <option value="Very Good">Very Good</option>
-                        <option value="Excellent">Excellent</option>
+                        <option value="">
+                            Select sleep quality
+                        </option>
+                        <option value="Poor">
+                            Poor
+                        </option>
+                        <option value="Fair">
+                            Fair
+                        </option>
+                        <option value="Good">
+                            Good
+                        </option>
+                        <option value="Very Good">
+                            Very Good
+                        </option>
+                        <option value="Excellent">
+                            Excellent
+                        </option>
                     </select>
                 </label>
 
@@ -172,21 +253,25 @@ function DailyCheckInForm({ onCheckInSaved }: DailyCheckInFormProps) {
                     Notes:
                     <textarea
                         value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
+                        onChange={(e) =>
+                            setNotes(e.target.value)
+                        }
                     />
                 </label>
 
                 <br />
 
-                <button type="submit">Save Check-In</button>
+                <button type="submit">
+                    {isEditing
+                        ? "Save Changes"
+                        : "Save Check-In"}
+                </button>
             </form>
 
-            {successMessage && <p>{successMessage}</p>}
-
+            {successMessage && (
+                <p>{successMessage}</p>
+            )}
         </div>
-
-
-
     );
 }
 

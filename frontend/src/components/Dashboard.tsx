@@ -3,8 +3,17 @@ import BBTChart from "./BBTChart";
 import MoodChart from "./MoodChart";
 import EnergyChart from "./EnergyChart";
 import SleepChart from "./SleepChart";
-import type { DailyCheckIn } from "../types/DailyCheckin";
-import Calendar from "./Calendar";
+
+type DailyCheckIn = {
+    id: number;
+    date: string;
+    cycle_day: number | null;
+    bbt: number | null;
+    mood: string | null;
+    energy_level: string | null;
+    sleep_quality: string | null;
+    notes: string | null;
+};
 
 function Dashboard() {
     const [checkins, setCheckins] = useState<DailyCheckIn[]>([]);
@@ -28,139 +37,212 @@ function Dashboard() {
                 setCheckins(data);
             })
             .catch((error) => {
-                console.error("Error fetching dashboard data:", error);
+                console.error(
+                    "Error fetching dashboard data:",
+                    error
+                );
             });
     }, []);
 
-    const currentCycleDay = checkins.reduce<number | null>(
-        (latest, checkin) => {
-            if (checkin.cycle_day === null) {
-                return latest;
-            }
-
-            if (latest === null || checkin.cycle_day > latest) {
-                return checkin.cycle_day;
-            }
-
-            return latest;
-        },
-        null
-    );
-
-    const latestBBT = [...checkins]
-        .filter((checkin) => checkin.bbt !== null)
-        .sort((a, b) => b.date.localeCompare(a.date))[0]?.bbt;
+    const latestCheckin = checkins[0];
 
     return (
-        <main className="min-h-screen bg-gray-50 px-4 py-6">
-            <div className="mx-auto max-w-4xl">
+        <div className="min-h-screen bg-[#F3F1EA] text-[#173B32]">
+            <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+
+
+
                 {/* Header */}
-                <header className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        CycleCync
+                <header className="mb-7">
+                    <div className="mb-3 inline-flex rounded-full bg-[#DDE9E1] px-3 py-1 text-xs font-semibold tracking-widest text-[#245544]">
+                        CYCLECYNC
+                    </div>
+
+                    <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                        Your cycle, your patterns.
                     </h1>
 
-                    <p className="mt-1 text-gray-600">
-                        Understand your cycle through your own data.
+                    <p className="mt-2 max-w-xl text-sm leading-6 text-[#61756D] sm:text-base">
+                        Keep track of your daily data and start noticing
+                        what your cycle looks like over time.
                     </p>
                 </header>
 
-                {/* Cycle Summary */}
-                <section className="mb-8">
-                    <h2 className="mb-3 text-lg font-semibold text-gray-900">
-                        Your Cycle
-                    </h2>
+                {/* Cycle summary */}
+                <section className="mb-8 overflow-hidden rounded-[28px] bg-[#245544] shadow-lg">
+                    <div className="p-6 text-white sm:p-8">
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-xl bg-white p-4 shadow-sm">
-                            <p className="text-sm text-gray-500">
-                                Cycle Day
-                            </p>
+                        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
 
-                            <p className="mt-1 text-2xl font-bold text-gray-900">
-                                {currentCycleDay ?? "—"}
-                            </p>
-                        </div>
+                            <div>
+                                <p className="text-sm font-medium text-[#C9DED4]">
+                                    Current cycle
+                                </p>
 
-                        <div className="rounded-xl bg-white p-4 shadow-sm">
-                            <p className="text-sm text-gray-500">
-                                Days Logged
-                            </p>
+                                <div className="mt-1 flex items-baseline gap-2">
+                                    <span className="text-5xl font-bold">
+                                        {latestCheckin?.cycle_day ?? "—"}
+                                    </span>
 
-                            <p className="mt-1 text-2xl font-bold text-gray-900">
-                                {checkins.length}
-                            </p>
-                        </div>
+                                    <span className="text-base text-[#C9DED4]">
+                                        cycle day
+                                    </span>
+                                </div>
 
-                        <div className="col-span-2 rounded-xl bg-white p-4 shadow-sm">
-                            <p className="text-sm text-gray-500">
-                                Latest BBT
-                            </p>
+                                <p className="mt-2 text-sm text-[#C9DED4]">
+                                    {latestCheckin
+                                        ? "Based on your latest check-in"
+                                        : "Start checking in to see your cycle"}
+                                </p>
+                            </div>
 
-                            <p className="mt-1 text-2xl font-bold text-gray-900">
-                                {latestBBT !== undefined
-                                    ? `${latestBBT}°F`
-                                    : "—"}
-                            </p>
+                            <div className="rounded-2xl bg-[#376B5A] px-5 py-4">
+                                <p className="text-xs font-medium uppercase tracking-wide text-[#C9DED4]">
+                                    Latest check-in
+                                </p>
+
+                                <p className="mt-1 text-lg font-semibold">
+                                    {latestCheckin?.date ?? "No data yet"}
+                                </p>
+                            </div>
+
                         </div>
                     </div>
                 </section>
 
-                {/* Calendar */}
-                <section className="mb-8">
-                    <h2 className="mb-3 text-lg font-semibold text-gray-900">
-                        Calendar
+                {/* Patterns heading */}
+                <div className="mb-5">
+                    <h2 className="text-2xl font-bold">
+                        Your patterns
                     </h2>
 
-                    <Calendar checkins={checkins} />
-                </section>
+                    <p className="mt-1 text-sm text-[#657870]">
+                        See how your daily measurements change across
+                        your cycle.
+                    </p>
+                </div>
 
-                {/* Trends */}
-                <section>
-                    <div className="mb-4 flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900">
-                                Your Trends
-                            </h2>
+                {/* Charts */}
+                <div className="grid gap-5 lg:grid-cols-2">
 
-                            <p className="mt-1 text-sm text-gray-500">
-                                See how your data changes across your cycle.
-                            </p>
+                    {/* BBT */}
+                    <section className="rounded-[28px] bg-[#E9E2F5] p-5 shadow-sm sm:p-6">
+                        <div className="mb-4 flex items-start justify-between">
+                            <div>
+                                <h3 className="text-lg font-bold text-[#463765]">
+                                    Basal Body Temperature
+                                </h3>
+
+                                <p className="mt-1 text-sm text-[#685C7D]">
+                                    Temperature by cycle day
+                                </p>
+                            </div>
+
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#D5C8EA] text-xl">
+                                🌡
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="space-y-5">
-                        <section className="rounded-xl bg-white p-4 shadow-sm">
-                            <h3 className="mb-3 text-lg font-semibold text-gray-900">
-                                BBT
-                            </h3>
+                        <div className="overflow-hidden rounded-2xl bg-[#F6F2FA] p-2">
                             <BBTChart checkins={checkins} />
-                        </section>
+                        </div>
+                    </section>
 
-                        <section className="rounded-xl bg-white p-4 shadow-sm">
-                            <h3 className="mb-3 text-lg font-semibold text-gray-900">
-                                Mood
-                            </h3>
+                    {/* Mood */}
+                    <section className="rounded-[28px] bg-[#E5DDF2] p-5 shadow-sm sm:p-6">
+                        <div className="mb-4 flex items-start justify-between">
+                            <div>
+                                <h3 className="text-lg font-bold text-[#463765]">
+                                    Mood
+                                </h3>
+
+                                <p className="mt-1 text-sm text-[#685C7D]">
+                                    How you've been feeling
+                                </p>
+                            </div>
+
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#D0C3E5] text-xl">
+                                ◌
+                            </div>
+                        </div>
+
+                        <div className="overflow-hidden rounded-2xl bg-[#F5F1F9] p-2">
                             <MoodChart checkins={checkins} />
-                        </section>
+                        </div>
+                    </section>
 
-                        <section className="rounded-xl bg-white p-4 shadow-sm">
-                            <h3 className="mb-3 text-lg font-semibold text-gray-900">
-                                Energy
-                            </h3>
+                    {/* Energy */}
+                    <section className="rounded-[28px] bg-[#F6E3C8] p-5 shadow-sm sm:p-6">
+                        <div className="mb-4 flex items-start justify-between">
+                            <div>
+                                <h3 className="text-lg font-bold text-[#754719]">
+                                    Energy
+                                </h3>
+
+                                <p className="mt-1 text-sm text-[#89694B]">
+                                    Your energy across the cycle
+                                </p>
+                            </div>
+
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EBCB9F] text-xl">
+                                ☀
+                            </div>
+                        </div>
+
+                        <div className="overflow-hidden rounded-2xl bg-[#FCF4E8] p-2">
                             <EnergyChart checkins={checkins} />
-                        </section>
+                        </div>
+                    </section>
 
-                        <section className="rounded-xl bg-white p-4 shadow-sm">
-                            <h3 className="mb-3 text-lg font-semibold text-gray-900">
-                                Sleep
-                            </h3>
+                    {/* Sleep */}
+                    <section className="rounded-[28px] bg-[#DDE9F0] p-5 shadow-sm sm:p-6">
+                        <div className="mb-4 flex items-start justify-between">
+                            <div>
+                                <h3 className="text-lg font-bold text-[#31566B]">
+                                    Sleep
+                                </h3>
+
+                                <p className="mt-1 text-sm text-[#5E7482]">
+                                    Your sleep quality
+                                </p>
+                            </div>
+
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#C3D9E5] text-xl">
+                                ☾
+                            </div>
+                        </div>
+
+                        <div className="overflow-hidden rounded-2xl bg-[#F1F7FA] p-2">
                             <SleepChart checkins={checkins} />
-                        </section>
+                        </div>
+                    </section>
+
+                </div>
+
+                {/* Compare */}
+                <section className="mt-7 rounded-[28px] bg-[#DDE9E1] p-5 shadow-sm sm:p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                        <div>
+                            <h3 className="text-lg font-bold text-[#245544]">
+                                Compare your patterns
+                            </h3>
+
+                            <p className="mt-1 max-w-xl text-sm leading-6 text-[#587066]">
+                                Explore connections between your cycle,
+                                mood, energy, sleep, and temperature.
+                            </p>
+                        </div>
+
+                        <span className="w-fit rounded-full bg-[#B9D4C5] px-4 py-2 text-xs font-bold text-[#245544]">
+                            Coming soon
+                        </span>
+
                     </div>
                 </section>
-            </div>
-        </main>
+
+            </main>
+        </div>
     );
 }
 

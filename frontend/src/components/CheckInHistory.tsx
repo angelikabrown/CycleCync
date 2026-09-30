@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { DailyCheckIn } from "../types/DailyCheckin";
+import DailyCheckInForm from "./DailyCheckInForm";
 
 type CheckInHistoryProps = {
     refreshTrigger: number;
@@ -7,6 +8,8 @@ type CheckInHistoryProps = {
 
 function CheckInHistory({ refreshTrigger }: CheckInHistoryProps) {
     const [checkins, setCheckins] = useState<DailyCheckIn[]>([]);
+    const [checkinToEdit, setCheckinToEdit] =
+        useState<DailyCheckIn | null>(null);
 
     const fetchCheckIns = () => {
         const token = sessionStorage.getItem("token");
@@ -59,7 +62,6 @@ function CheckInHistory({ refreshTrigger }: CheckInHistoryProps) {
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            // Remove the deleted check-in from the UI
             setCheckins((currentCheckins) =>
                 currentCheckins.filter(
                     (checkin) => checkin.id !== checkinId
@@ -71,9 +73,33 @@ function CheckInHistory({ refreshTrigger }: CheckInHistoryProps) {
         }
     };
 
+    const handleEditComplete = () => {
+        setCheckinToEdit(null);
+        fetchCheckIns();
+    };
+
     return (
         <div>
             <h2>Daily Check-Ins</h2>
+
+            {checkinToEdit && (
+                <div>
+                    <DailyCheckInForm
+                        onCheckInSaved={() => { }}
+                        checkinToEdit={checkinToEdit}
+                        onEditComplete={handleEditComplete}
+                    />
+
+                    <button
+                        type="button"
+                        onClick={() => setCheckinToEdit(null)}
+                    >
+                        Cancel
+                    </button>
+
+                    <hr />
+                </div>
+            )}
 
             {checkins.length === 0 ? (
                 <p>No check-ins found.</p>
@@ -92,7 +118,17 @@ function CheckInHistory({ refreshTrigger }: CheckInHistoryProps) {
                         <p>📝 Notes: {checkin.notes}</p>
 
                         <button
-                            onClick={() => handleDelete(checkin.id)}
+                            onClick={() =>
+                                setCheckinToEdit(checkin)
+                            }
+                        >
+                            Edit
+                        </button>
+
+                        <button
+                            onClick={() =>
+                                handleDelete(checkin.id)
+                            }
                         >
                             Delete
                         </button>
