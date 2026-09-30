@@ -34,13 +34,23 @@ def create_daily_checkin(
             detail="Daily check-in for this date already exists"
         )
 
-    cycle_day = get_cycle_day(
+    ##cycle_day = get_cycle_day(
         db,
         current_user,
         daily_check_in.date
-    )
+    ##)
+    # If the user is starting a new period, cycle day should be set to 1. Otherwise, it should be calculated based on the most recent period start.
+    if daily_check_in.period:
+        cycle_day = 1
+    else:
+        cycle_day = get_cycle_day(
+            db,
+            current_user,
+            daily_check_in.date
+        )
 
     new_checkin = DailyCheckIn(
+        user_id=current_user.id,
         date=daily_check_in.date,
         cycle_day=cycle_day,
         period=daily_check_in.period,
