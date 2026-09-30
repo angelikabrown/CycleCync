@@ -124,6 +124,10 @@ CycleCync is built around a few simple ideas:
 
 ## Future Features
 
+- Custom Data Tracking
+- BBT-Informed Cycle Phase Visualization
+- Expandable Journal
+- Personalized Pattern Analysis
 - Educational learning companion
 - AI coaching
 - Long-term pattern detection
@@ -133,9 +137,9 @@ CycleCync is built around a few simple ideas:
 
 ---
 
-## Current Status
+### Current Status
 
-🚧 Planning & System Design
+🚧 MVP Development — Finalizing for Deployment
 
 Completed:
 
@@ -145,12 +149,26 @@ Completed:
 - API Design
 - User Stories
 - Wireframes
+- FastAPI Backend
+- PostgreSQL Database
+- User Authentication
+- Daily Check-In System
+- Check-In History
+- Calendar
+- Dashboard & Data Visualizations
+- Edit/Delete Check-Ins
+
+In Progress:
+
+- Period & Cycle-Day Tracking
+- BBT Comparison Feature
+- Non-AI Pattern & Insight Engine
+- Mobile UI Polish
 
 Next Step:
 
-- Backend development with FastAPI
-
----
+- Real-world testing with historical cycle data
+- MVP deployment
 
 ## Project Goal
 
