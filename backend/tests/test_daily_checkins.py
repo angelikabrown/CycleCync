@@ -1,7 +1,21 @@
+from datetime import date
 
+from app.models.user import User
+from app.services.cycle_service import get_cycle_day
 #
 #  This is a test file for the daily check-in endpoint of the FastAPI application.
 #  It uses pytest and the TestClient from FastAPI to simulate requests to the API.
+
+def get_token(client, email):
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": email,
+            "password": "password123"
+        }
+    )
+
+    return login_response.json()["access_token"]
 
 
 #  The test_create_checkin function sends a POST request to the /daily_checkins/checkin endpoint with a JSON payload containing check-in data
@@ -959,6 +973,222 @@ def test_update_checkin_requires_authentication(client):
     )
 
     assert response.status_code in [401, 403]
+
+def test_create_period_checkin(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "perioduser",
+            "email": "period@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "period@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-10-01",
+            "period": True
+        }
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["period"] is True
+
+def test_create_non_period_checkin(client):
+    client.post(
+        "/users/register",
+        json={
+            "username": "noperioduser",
+            "email": "noperiod@example.com",
+            "password": "password123"
+        }
+    )
+
+    login_response = client.post(
+        "/users/login",
+        data={
+            "username": "noperiod@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    response = client.post(
+        "/daily_checkins/checkin",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "date": "2026-10-01",
+            "period": False,
+            "bbt": 97.5
+        }
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["period"] is False
+
+
+# This test checks the behavior of the cycle day calculation when a user starts a new period. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header to start a period on September 21. The test then verifies that the cycle day is correctly calculated as 1 for that date.
+def test_cycle_day_starts_at_one_on_period_start(client, db):
+    client.post(
+        "/users/register",
+        json={
+            "username": "cycleuser1",
+            "email": "cycle1@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = get_token(client, "cycle1@example.com")
+
+    client.post(
+        "/daily_checkins/checkin",
+        headers={
+            "Authorization": f"Bearer {token}"
+        },
+        json={
+            "date": "2026-09-21",
+            "period": True
+        }
+    )
+
+    user = db.query(User).filter(
+        User.email == "cycle1@example.com"
+    ).first()
+
+    assert get_cycle_day(
+        db,
+        user,
+        date(2026, 9, 21)
+    ) == 1
+
+# This test checks the behavior of the cycle day calculation when a user does not check in for several days after starting a period. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header to start a period on September 21. The test then verifies that the cycle day continues to increment correctly for September 22, 23, and 24, even though there are no check-ins on those days.
+def test_cycle_day_continues_without_checkin(client, db):
+    client.post(
+        "/users/register",
+        json={
+            "username": "cycleuser2",
+            "email": "cycle2@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = get_token(client, "cycle2@example.com")
+
+    # CD1
+    client.post(
+        "/daily_checkins/checkin",
+        headers={
+            "Authorization": f"Bearer {token}"
+        },
+        json={
+            "date": "2026-09-21",
+            "period": True
+        }
+    )
+
+    user = db.query(User).filter(
+        User.email == "cycle2@example.com"
+    ).first()
+
+    # No check-ins on Sept 22, 23, or 24.
+
+    assert get_cycle_day(
+        db,
+        user,
+        date(2026, 9, 22)
+    ) == 2
+
+    assert get_cycle_day(
+        db,
+        user,
+        date(2026, 9, 23)
+    ) == 3
+
+    assert get_cycle_day(
+        db,
+        user,
+        date(2026, 9, 24)
+    ) == 4
+
+# This test checks the behavior of the daily check-in endpoint when a user starts a new period, which should reset the cycle day to 1. It first registers a user, logs in to obtain a JWT token, and then sends two POST requests to the /daily_checkins/checkin endpoint with the token included in the Authorization header. The first request starts a period on September 21, and the second request starts a new period on October 19. The test verifies that the cycle day is correctly calculated for dates before and after the new period start.
+def test_new_period_starts_new_cycle(client, db):
+    client.post(
+        "/users/register",
+        json={
+            "username": "cycleuser3",
+            "email": "cycle3@example.com",
+            "password": "password123"
+        }
+    )
+
+    token = get_token(client, "cycle3@example.com")
+
+    # First cycle starts
+    client.post(
+        "/daily_checkins/checkin",
+        headers={
+            "Authorization": f"Bearer {token}"
+        },
+        json={
+            "date": "2026-09-21",
+            "period": True
+        }
+    )
+
+    # New cycle starts
+    client.post(
+        "/daily_checkins/checkin",
+        headers={
+            "Authorization": f"Bearer {token}"
+        },
+        json={
+            "date": "2026-10-19",
+            "period": True
+        }
+    )
+
+    user = db.query(User).filter(
+        User.email == "cycle3@example.com"
+    ).first()
+
+    assert get_cycle_day(
+        db,
+        user,
+        date(2026, 10, 18)
+    ) == 28
+
+    assert get_cycle_day(
+        db,
+        user,
+        date(2026, 10, 19)
+    ) == 1
+
+    assert get_cycle_day(
+        db,
+        user,
+        date(2026, 10, 20)
+    ) == 2
+
+
 
 
 
