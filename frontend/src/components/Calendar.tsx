@@ -122,15 +122,22 @@ function Calendar({ checkins }: CalendarProps) {
                                 setSelectedCheckIn(checkin)
                             }
                             disabled={!checkin}
-                            className={`min-h-14 rounded-lg p-1 text-sm ${checkin
-                                    ? "bg-gray-100 font-semibold hover:bg-gray-200"
-                                    : "text-gray-500"
+                            className={`min-h-14 rounded-lg p-1 text-sm transition-colors ${checkin
+                                ? checkin.period
+                                    ? "bg-amber-100 font-semibold text-amber-900 hover:bg-amber-200"
+                                    : "bg-gray-100 font-semibold text-gray-900 hover:bg-gray-200"
+                                : "text-gray-500 hover:bg-gray-50"
                                 }`}
                         >
                             <div>{day}</div>
 
                             {checkin && (
-                                <div className="mt-1 text-xs text-gray-600">
+                                <div
+                                    className={`mt-1 text-xs ${checkin.period
+                                        ? "text-amber-800"
+                                        : "text-gray-600"
+                                        }`}
+                                >
                                     CD {checkin.cycle_day ?? "—"}
                                 </div>
                             )}
