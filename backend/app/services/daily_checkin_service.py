@@ -59,7 +59,7 @@ def create_daily_checkin(
         energy_level=daily_check_in.energy_level,
         sleep_quality=daily_check_in.sleep_quality,
         notes=daily_check_in.notes,
-        user_id=current_user.id,
+       
     )
 
     db.add(new_checkin)
@@ -149,13 +149,24 @@ def update_daily_checkin(
             detail="Daily check-in not found"
         )
 
+    # Update the user-entered fields
     checkin.date = daily_check_in.date
-    checkin.cycle_day = daily_check_in.cycle_day
+    checkin.period = daily_check_in.period
     checkin.bbt = daily_check_in.bbt
     checkin.mood = daily_check_in.mood
     checkin.energy_level = daily_check_in.energy_level
     checkin.sleep_quality = daily_check_in.sleep_quality
     checkin.notes = daily_check_in.notes
+
+    # Recalculate cycle day
+    if daily_check_in.period:
+        checkin.cycle_day = 1
+    else:
+        checkin.cycle_day = get_cycle_day(
+            db,
+            current_user,
+            daily_check_in.date
+        )
 
     db.commit()
     db.refresh(checkin)

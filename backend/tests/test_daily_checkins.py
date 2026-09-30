@@ -79,48 +79,39 @@ def test_create_checkin_with_token(client):
     assert response.status_code == 200
 
 
-
-#  This test checks the behavior of the daily check-in endpoint when a user attempts to create a check-in with a negative cycle day. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header and a negative cycle day in the payload. The test verifies that the request fails (status code 422) due to validation errors.
-def test_create_checkin_negative_cycle_day(client):
-    # Register user
+# This test checks the behavior of the daily check-in endpoint when a user attempts to create a check-in with a cycle day value that should be ignored. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header and a cycle day value in the payload. The test verifies that the check-in creation is successful (status code 200) and that the cycle day is set to 1, as it should be ignored when creating a new check-in.
+def test_create_checkin_ignores_cycle_day(client):
     client.post(
         "/users/register",
         json={
-            "username": "negativecycleuser",
-            "email": "negativecycle@example.com",
+            "username": "cycleuser",
+            "email": "cycle@example.com",
             "password": "password123"
         }
     )
 
-    # Login
     login_response = client.post(
         "/users/login",
         data={
-            "username": "negativecycle@example.com",
+            "username": "cycle@example.com",
             "password": "password123"
         }
     )
 
     token = login_response.json()["access_token"]
 
-    # Try to create a check-in with a negative cycle day
     response = client.post(
         "/daily_checkins/checkin",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "date": "2026-09-27",
-            "cycle_day": -1,
-            "bbt": 97.5,
-            "mood": "Good",
-            "energy_level": "High",
-            "sleep_quality": "Good",
-            "notes": "Invalid cycle day"
+            "period": True,
+            "cycle_day": 99
         }
     )
 
-    assert response.status_code == 422
+    assert response.status_code == 200
+    assert response.json()["cycle_day"] == 1
 
 
 #  This test checks the behavior of the daily check-in endpoint when a user attempts to create a check-in with only the required fields. It first registers a user, logs in to obtain a JWT token, and then sends a POST request to the /daily_checkins/checkin endpoint with the token included in the Authorization header and only the required date field in the payload. The test verifies that the check-in creation is successful (status code 200).
@@ -338,10 +329,10 @@ def test_get_own_checkins(client):
         "/daily_checkins/checkin",
         headers={"Authorization": f"Bearer {token}"},
         json={
-            "date": "2026-09-27",
-            "cycle_day": 5,
-            "mood": "Good"
-        }
+        "date": "2026-09-27",
+        "period": True,
+        "mood": "Good"
+    }
     )
 
     # Retrieve check-ins
@@ -356,7 +347,7 @@ def test_get_own_checkins(client):
 
     assert len(data) == 1
     assert data[0]["date"] == "2026-09-27"
-    assert data[0]["cycle_day"] == 5
+    assert data[0]["cycle_day"] == 1
 
 
 
@@ -738,7 +729,7 @@ def test_update_own_checkin(client):
         headers={"Authorization": f"Bearer {token}"},
         json={
             "date": "2026-09-29",
-            "cycle_day": 7,
+            "period": True,
             "mood": "Good",
             "energy_level": "Moderate",
             "sleep_quality": "Good"
@@ -769,7 +760,7 @@ def test_update_own_checkin(client):
 
     assert data["id"] == checkin_id
     assert data["date"] == "2026-09-29"
-    assert data["cycle_day"] == 7
+    assert data["cycle_day"] == 1
     assert data["mood"] == "Excellent"
     assert data["energy_level"] == "High"
     assert data["sleep_quality"] == "Very Good"
