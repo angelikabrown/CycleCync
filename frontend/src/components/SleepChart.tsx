@@ -17,14 +17,10 @@ type SleepChartProps = {
 function SleepChart({ checkins }: SleepChartProps) {
     const sleepValues: Record<string, number> = {
         Poor: 1,
-        Average: 2,
+        Fair: 2,
         Good: 3,
-    };
-
-    const sleepLabels: Record<number, string> = {
-        1: "Poor",
-        2: "Average",
-        3: "Good",
+        "Very Good": 4,
+        Excellent: 5,
     };
 
     const chartData = checkins
@@ -37,7 +33,7 @@ function SleepChart({ checkins }: SleepChartProps) {
             cycleDay: checkin.cycle_day,
             sleep: sleepValues[checkin.sleep_quality!],
         }))
-        .filter((checkin) => checkin.sleep !== undefined)
+        .filter((item) => item.sleep !== undefined)
         .sort((a, b) => a.cycleDay! - b.cycleDay!);
 
     if (chartData.length === 0) {
@@ -51,6 +47,8 @@ function SleepChart({ checkins }: SleepChartProps) {
 
                 <XAxis
                     dataKey="cycleDay"
+                    type="number"
+                    domain={["dataMin", "dataMax"]}
                     label={{
                         value: "Cycle Day",
                         position: "insideBottom",
@@ -59,16 +57,34 @@ function SleepChart({ checkins }: SleepChartProps) {
                 />
 
                 <YAxis
-                    domain={[1, 3]}
-                    ticks={[1, 2, 3]}
-                    tickFormatter={(value) => sleepLabels[value]}
+                    domain={[1, 5]}
+                    ticks={[1, 2, 3, 4, 5]}
+                    allowDecimals={false}
+                    tickFormatter={(value) => {
+                        const labels: Record<number, string> = {
+                            1: "Poor",
+                            2: "Fair",
+                            3: "Good",
+                            4: "Very Good",
+                            5: "Excellent",
+                        };
+
+                        return labels[value] ?? "";
+                    }}
                 />
 
                 <Tooltip
-                    formatter={(value) => [
-                        sleepLabels[value as number],
-                        "Sleep",
-                    ]}
+                    formatter={(value) => {
+                        const labels: Record<number, string> = {
+                            1: "Poor",
+                            2: "Fair",
+                            3: "Good",
+                            4: "Very Good",
+                            5: "Excellent",
+                        };
+
+                        return labels[value as number] ?? value;
+                    }}
                     labelFormatter={(cycleDay) =>
                         `Cycle Day ${cycleDay}`
                     }

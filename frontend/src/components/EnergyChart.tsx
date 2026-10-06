@@ -16,17 +16,11 @@ type EnergyChartProps = {
 
 function EnergyChart({ checkins }: EnergyChartProps) {
     const energyValues: Record<string, number> = {
-        Low: 1,
-        Moderate: 2,
-        Good: 3,
+        "Very Low": 1,
+        Low: 2,
+        Moderate: 3,
         High: 4,
-    };
-
-    const energyLabels: Record<number, string> = {
-        1: "Low",
-        2: "Moderate",
-        3: "Good",
-        4: "High",
+        "Very High": 5,
     };
 
     const chartData = checkins
@@ -36,11 +30,11 @@ function EnergyChart({ checkins }: EnergyChartProps) {
                 checkin.energy_level !== null
         )
         .map((checkin) => ({
-            cycleDay: checkin.cycle_day,
+            cycleDay: String(checkin.cycle_day),
             energy: energyValues[checkin.energy_level!],
         }))
-        .filter((checkin) => checkin.energy !== undefined)
-        .sort((a, b) => a.cycleDay! - b.cycleDay!);
+        .filter((item) => item.energy !== undefined)
+        .sort((a, b) => Number(a.cycleDay) - Number(b.cycleDay));
 
     if (chartData.length === 0) {
         return <p>No energy data available yet.</p>;
@@ -48,7 +42,15 @@ function EnergyChart({ checkins }: EnergyChartProps) {
 
     return (
         <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
+            <LineChart
+                data={chartData}
+                margin={{
+                    top: 10,
+                    right: 20,
+                    left: 65,
+                    bottom: 10,
+                }}
+            >
                 <CartesianGrid strokeDasharray="3 3" />
 
                 <XAxis
@@ -61,16 +63,34 @@ function EnergyChart({ checkins }: EnergyChartProps) {
                 />
 
                 <YAxis
-                    domain={[1, 4]}
-                    ticks={[1, 2, 3, 4]}
-                    tickFormatter={(value) => energyLabels[value]}
+                    domain={[1, 5]}
+                    ticks={[1, 2, 3, 4, 5]}
+                    allowDecimals={false}
+                    tickFormatter={(value) => {
+                        const labels: Record<number, string> = {
+                            1: "Very Low",
+                            2: "Low",
+                            3: "Moderate",
+                            4: "High",
+                            5: "Very High",
+                        };
+
+                        return labels[value] ?? "";
+                    }}
                 />
 
                 <Tooltip
-                    formatter={(value) => [
-                        energyLabels[value as number],
-                        "Energy",
-                    ]}
+                    formatter={(value) => {
+                        const labels: Record<number, string> = {
+                            1: "Very Low",
+                            2: "Low",
+                            3: "Moderate",
+                            4: "High",
+                            5: "Very High",
+                        };
+
+                        return labels[value as number] ?? value;
+                    }}
                     labelFormatter={(cycleDay) =>
                         `Cycle Day ${cycleDay}`
                     }
