@@ -1,55 +1,68 @@
-import { useMemo, useState } from "react";
-import type { DailyCheckIn } from "../types/DailyCheckin";
+import { useEffect, useState } from "react";
+import type { CalendarDay } from "../types/Calendar";
 
-type CalendarProps = {
-    checkins: DailyCheckIn[];
-};
-
-function Calendar({ checkins }: CalendarProps) {
+function Calendar() {
     const today = new Date();
 
     const [currentMonth, setCurrentMonth] = useState(
         new Date(today.getFullYear(), today.getMonth(), 1)
     );
 
-    const [selectedCheckIn, setSelectedCheckIn] =
-        useState<DailyCheckIn | null>(null);
+    const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
+    const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
 
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
 
     const monthName = currentMonth.toLocaleString("default", {
         month: "long",
         year: "numeric",
     });
 
-    const checkinsByDate = useMemo(() => {
-        const map = new Map<string, DailyCheckIn>();
+    useEffect(() => {
+        const token = sessionStorage.getItem("token");
 
-        checkins.forEach((checkin) => {
-            map.set(checkin.date, checkin);
-        });
+        const apiMonth = month + 1;
 
-        return map;
-    }, [checkins]);
+        fetch(
+            `http://localhost:8000/calendar/?year=${year}&month=${apiMonth}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        )
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                return response.json();
+            })
+            .then((data) => {
+                setCalendarDays(data);
+            })
+            .catch((error) => {
+                console.error("Calendar fetch error:", error);
+            });
+    }, [year, month]);
 
     const previousMonth = () => {
-        setCurrentMonth(
-            new Date(year, month - 1, 1)
-        );
-        setSelectedCheckIn(null);
+        setCurrentMonth(new Date(year, month - 1, 1));
+        setSelectedDay(null);
     };
 
     const nextMonth = () => {
-        setCurrentMonth(
-            new Date(year, month + 1, 1)
-        );
-        setSelectedCheckIn(null);
+        setCurrentMonth(new Date(year, month + 1, 1));
+        setSelectedDay(null);
     };
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+    const calendarDaysByDate = new Map(
+        calendarDays.map((day) => [day.date, day])
+    );
 
     const days = Array.from(
         { length: firstDayOfMonth + daysInMonth },
@@ -64,7 +77,6 @@ function Calendar({ checkins }: CalendarProps) {
 
     return (
         <section className="rounded-xl bg-white p-4 shadow-sm">
-            {/* Calendar Header */}
             <div className="mb-4 flex items-center justify-between">
                 <button
                     onClick={previousMonth}
@@ -87,7 +99,6 @@ function Calendar({ checkins }: CalendarProps) {
                 </button>
             </div>
 
-            {/* Weekday Headers */}
             <div className="mb-2 grid grid-cols-7 text-center text-xs font-medium text-gray-500">
                 <div>Sun</div>
                 <div>Mon</div>
@@ -98,47 +109,42 @@ function Calendar({ checkins }: CalendarProps) {
                 <div>Sat</div>
             </div>
 
-            {/* Calendar Days */}
             <div className="grid grid-cols-7 gap-1">
                 {days.map((day, index) => {
                     if (day === null) {
                         return <div key={index} />;
                     }
 
-                    const dateString = `${year}-${String(
-                        month + 1
-                    ).padStart(2, "0")}-${String(day).padStart(
+                    const dateString = `${year}-${String(month + 1).padStart(
                         2,
                         "0"
-                    )}`;
+                    )}-${String(day).padStart(2, "0")}`;
 
-                    const checkin = checkinsByDate.get(dateString);
+                    const calendarDay = calendarDaysByDate.get(dateString);
 
                     return (
                         <button
                             key={dateString}
                             onClick={() =>
-                                checkin &&
-                                setSelectedCheckIn(checkin)
+                                calendarDay && setSelectedDay(calendarDay)
                             }
-                            disabled={!checkin}
-                            className={`min-h-14 rounded-lg p-1 text-sm transition-colors ${checkin
-                                ? checkin.period
-                                    ? "bg-amber-100 font-semibold text-amber-900 hover:bg-amber-200"
-                                    : "bg-gray-100 font-semibold text-gray-900 hover:bg-gray-200"
-                                : "text-gray-500 hover:bg-gray-50"
+                            className={`min-h-14 rounded-lg p-1 text-sm ${calendarDay?.period
+                                    ? "bg-[#F2D0B5] font-semibold text-[#8A4B2A] hover:bg-[#E8C09F]"
+                                    : calendarDay?.checkin
+                                        ? "bg-gray-100 font-semibold hover:bg-gray-200"
+                                        : "text-gray-500 hover:bg-gray-50"
                                 }`}
                         >
                             <div>{day}</div>
 
-                            {checkin && (
+                            {calendarDay && (
                                 <div
-                                    className={`mt-1 text-xs ${checkin.period
-                                        ? "text-amber-800"
-                                        : "text-gray-600"
+                                    className={`mt-1 text-xs ${calendarDay.period
+                                            ? "text-amber-800"
+                                            : "text-gray-600"
                                         }`}
                                 >
-                                    CD {checkin.cycle_day ?? "—"}
+                                    CD {calendarDay.cycle_day ?? "—"}
                                 </div>
                             )}
                         </button>
@@ -146,48 +152,52 @@ function Calendar({ checkins }: CalendarProps) {
                 })}
             </div>
 
-            {/* Selected Check-in */}
-            {selectedCheckIn && (
+            {selectedDay && (
                 <div className="mt-5 border-t pt-4">
                     <h3 className="font-semibold text-gray-900">
-                        {selectedCheckIn.date}
+                        {selectedDay.date}
                     </h3>
 
                     <p className="mt-1 text-sm text-gray-600">
-                        Cycle Day{" "}
-                        {selectedCheckIn.cycle_day ?? "—"}
+                        Cycle Day {selectedDay.cycle_day ?? "—"}
                     </p>
 
-                    <div className="mt-3 space-y-1 text-sm">
-                        <p>
-                            <strong>BBT:</strong>{" "}
-                            {selectedCheckIn.bbt ?? "Not recorded"}
-                        </p>
-
-                        <p>
-                            <strong>Mood:</strong>{" "}
-                            {selectedCheckIn.mood ?? "Not recorded"}
-                        </p>
-
-                        <p>
-                            <strong>Energy:</strong>{" "}
-                            {selectedCheckIn.energy_level ??
-                                "Not recorded"}
-                        </p>
-
-                        <p>
-                            <strong>Sleep:</strong>{" "}
-                            {selectedCheckIn.sleep_quality ??
-                                "Not recorded"}
-                        </p>
-
-                        {selectedCheckIn.notes && (
+                    {selectedDay.checkin ? (
+                        <div className="mt-3 space-y-1 text-sm">
                             <p>
-                                <strong>Notes:</strong>{" "}
-                                {selectedCheckIn.notes}
+                                <strong>BBT:</strong>{" "}
+                                {selectedDay.checkin.bbt ?? "Not recorded"}
                             </p>
-                        )}
-                    </div>
+
+                            <p>
+                                <strong>Mood:</strong>{" "}
+                                {selectedDay.checkin.mood ?? "Not recorded"}
+                            </p>
+
+                            <p>
+                                <strong>Energy:</strong>{" "}
+                                {selectedDay.checkin.energy_level ??
+                                    "Not recorded"}
+                            </p>
+
+                            <p>
+                                <strong>Sleep:</strong>{" "}
+                                {selectedDay.checkin.sleep_quality ??
+                                    "Not recorded"}
+                            </p>
+
+                            {selectedDay.checkin.notes && (
+                                <p>
+                                    <strong>Notes:</strong>{" "}
+                                    {selectedDay.checkin.notes}
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="mt-3 text-sm text-gray-500">
+                            No check-in recorded for this day.
+                        </p>
+                    )}
                 </div>
             )}
         </section>

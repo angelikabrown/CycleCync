@@ -29,24 +29,53 @@ function BBTChart({ checkins }: BBTChartProps) {
         .map((checkin) => ({
             cycleDay: checkin.cycle_day,
             bbt: checkin.bbt,
-        })).sort((a, b) => a.cycleDay - b.cycleDay);
+        }))
+        .sort((a, b) => a.cycleDay - b.cycleDay);
 
     if (bbtData.length === 0) {
         return <p>No BBT data available yet.</p>;
     }
 
+    const minBBT = Math.min(...bbtData.map((item) => item.bbt));
+    const maxBBT = Math.max(...bbtData.map((item) => item.bbt));
+
+    const yAxisMin = Math.floor((minBBT - 0.2) * 10) / 10;
+    const yAxisMax = Math.ceil((maxBBT + 0.2) * 10) / 10;
+
     return (
         <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={bbtData}>
+            <LineChart
+                data={bbtData}
+                margin={{
+                    top: 10,
+                    right: 20,
+                    left: 10,
+                    bottom: 10,
+                }}
+            >
                 <CartesianGrid strokeDasharray="3 3" />
 
-                <XAxis dataKey="cycleDay" />
-
-                <YAxis
-                    domain={["dataMin - 0.2", "dataMax + 0.2"]}
+                <XAxis
+                    dataKey="cycleDay"
+                    label={{
+                        value: "Cycle Day",
+                        position: "insideBottom",
+                        offset: -5,
+                    }}
                 />
 
-                <Tooltip />
+                <YAxis
+                    domain={[yAxisMin, yAxisMax]}
+                    tickFormatter={(value) => value.toFixed(1)}
+                />
+
+                <Tooltip
+                    formatter={(value) =>
+                        typeof value === "number"
+                            ? value.toFixed(2)
+                            : value
+                    }
+                />
 
                 <Line
                     type="monotone"

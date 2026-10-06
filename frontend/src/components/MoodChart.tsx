@@ -16,10 +16,11 @@ type MoodChartProps = {
 
 function MoodChart({ checkins }: MoodChartProps) {
     const moodValues: Record<string, number> = {
-        Poor: 1,
-        Average: 2,
-        Good: 3,
-        Excellent: 4,
+        "Very Bad": 1,
+        "Bad": 2,
+        "OK": 3,
+        "Good": 4,
+        "Excellent": 5,
     };
 
     const chartData = checkins
@@ -29,23 +30,47 @@ function MoodChart({ checkins }: MoodChartProps) {
                 checkin.mood !== null
         )
         .map((checkin) => ({
-            cycleDay: checkin.cycle_day,
+            cycleDay: checkin.cycle_day!,
             mood: moodValues[checkin.mood!],
         }))
-        .sort((a, b) => a.cycleDay! - b.cycleDay!);
-
+        .sort((a, b) => a.cycleDay - b.cycleDay);
 
     if (chartData.length === 0) {
         return <p>No mood data available yet.</p>;
     }
 
+    const minCycleDay = Math.min(
+        ...chartData.map((item) => item.cycleDay)
+    );
+
+    const maxCycleDay = Math.max(
+        ...chartData.map((item) => item.cycleDay)
+    );
+
+    const cycleDayTicks = Array.from(
+        { length: maxCycleDay - minCycleDay + 1 },
+        (_, index) => minCycleDay + index
+    );
+
     return (
         <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
+            <LineChart
+                data={chartData}
+                margin={{
+                    top: 10,
+                    right: 20,
+                    left: 20,
+                    bottom: 10,
+                }}
+            >
                 <CartesianGrid strokeDasharray="3 3" />
 
                 <XAxis
+                    type="number"
                     dataKey="cycleDay"
+                    domain={[minCycleDay, maxCycleDay]}
+                    ticks={cycleDayTicks}
+                    allowDecimals={false}
                     label={{
                         value: "Cycle Day",
                         position: "insideBottom",
@@ -54,21 +79,38 @@ function MoodChart({ checkins }: MoodChartProps) {
                 />
 
                 <YAxis
-                    domain={[1, 4]}
-                    ticks={[1, 2, 3, 4]}
+                    domain={[1, 5]}
+                    ticks={[1, 2, 3, 4, 5]}
+                    allowDecimals={false}
                     tickFormatter={(value) => {
                         const labels: Record<number, string> = {
-                            1: "Poor",
-                            2: "Average",
-                            3: "Good",
-                            4: "Excellent",
+                            1: "Very Bad",
+                            2: "Bad",
+                            3: "OK",
+                            4: "Good",
+                            5: "Excellent",
                         };
 
-                        return labels[value];
+                        return labels[value] ?? "";
                     }}
                 />
 
-                <Tooltip />
+                <Tooltip
+                    formatter={(value) => {
+                        const labels: Record<number, string> = {
+                            1: "Very Bad",
+                            2: "Bad",
+                            3: "OK",
+                            4: "Good",
+                            5: "Excellent",
+                        };
+
+                        return labels[value as number] ?? value;
+                    }}
+                    labelFormatter={(cycleDay) =>
+                        `Cycle Day ${cycleDay}`
+                    }
+                />
 
                 <Line
                     type="monotone"
