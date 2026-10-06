@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -12,27 +12,28 @@ def get_cycle_day(
     current_user: User,
     target_date: date,
 ) -> int | None:
-    """
-    Calculate the cycle day for a user on a specific date.
 
-    The most recent period day on or before target_date
-    establishes CD1.
-
-    Returns None if the user has no recorded period start
-    before or on the target date.
-    """
-
-    latest_period = db.execute(
-        select(DailyCheckIn)
+    period_dates = db.execute(
+        select(DailyCheckIn.date)
         .where(
             DailyCheckIn.user_id == current_user.id,
             DailyCheckIn.period.is_(True),
             DailyCheckIn.date <= target_date,
         )
         .order_by(DailyCheckIn.date.desc())
-    ).scalars().first()
+    ).scalars().all()
 
-    if latest_period is None:
+    if not period_dates:
         return None
 
-    return (target_date - latest_period.date).days + 1
+    period_start = period_dates[0]
+
+    for i in range(1, len(period_dates)):
+        expected_date = period_start - timedelta(days=1)
+
+        if period_dates[i] == expected_date:
+            period_start = period_dates[i]
+        else:
+            break
+
+    return (target_date - period_start).days + 1
