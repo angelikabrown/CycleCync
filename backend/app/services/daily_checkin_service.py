@@ -1,26 +1,16 @@
-from fastapi import HTTPException
+from datetime import date, timedelta
 
-from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from app.models.daily_check_in import DailyCheckIn
 from app.models.user import User
-from app.utils.auth import get_current_user
 from app.schemas.daily_check_in import DailyCheckInCreate
 from app.services.cycle_service import get_cycle_day
 
 
-def create_daily_checkin(
-    db: Session,
-    daily_check_in: DailyCheckInCreate,
-    current_user: User
-):
-    """
-    Create a new daily check-in for the current user.
-
-    Cycle day is calculated automatically from the most recent
-    period start. The user does not manually enter cycle day.
-    """
-
+def create_daily_checkin(db, daily_check_in, current_user):
     existing_checkin = db.execute(
         select(DailyCheckIn).where(
             DailyCheckIn.user_id == current_user.id,
@@ -34,20 +24,11 @@ def create_daily_checkin(
             detail="Daily check-in for this date already exists"
         )
 
-    ##cycle_day = get_cycle_day(
+    cycle_day = get_cycle_day(
         db,
         current_user,
         daily_check_in.date
-    ##)
-    # If the user is starting a new period, cycle day should be set to 1. Otherwise, it should be calculated based on the most recent period start.
-    if daily_check_in.period:
-        cycle_day = 1
-    else:
-        cycle_day = get_cycle_day(
-            db,
-            current_user,
-            daily_check_in.date
-        )
+    )
 
     new_checkin = DailyCheckIn(
         user_id=current_user.id,
@@ -59,7 +40,6 @@ def create_daily_checkin(
         energy_level=daily_check_in.energy_level,
         sleep_quality=daily_check_in.sleep_quality,
         notes=daily_check_in.notes,
-       
     )
 
     db.add(new_checkin)

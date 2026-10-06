@@ -30,14 +30,14 @@ function BBTChart({ checkins }: BBTChartProps) {
             cycleDay: checkin.cycle_day,
             bbt: checkin.bbt,
         }))
-        .sort((a, b) => a.cycleDay - b.cycleDay);
+        .sort((a, b) => a.cycleDay! - b.cycleDay!);
 
     if (bbtData.length === 0) {
         return <p>No BBT data available yet.</p>;
     }
 
-    const minBBT = Math.min(...bbtData.map((item) => item.bbt));
-    const maxBBT = Math.max(...bbtData.map((item) => item.bbt));
+    const minBBT = Math.min(...bbtData.map((item) => item.bbt!));
+    const maxBBT = Math.max(...bbtData.map((item) => item.bbt!));
 
     const yAxisMin = Math.floor((minBBT - 0.2) * 10) / 10;
     const yAxisMax = Math.ceil((maxBBT + 0.2) * 10) / 10;

@@ -30,11 +30,11 @@ function SleepChart({ checkins }: SleepChartProps) {
                 checkin.sleep_quality !== null
         )
         .map((checkin) => ({
-            cycleDay: checkin.cycle_day,
+            cycleDay: String(checkin.cycle_day),
             sleep: sleepValues[checkin.sleep_quality!],
         }))
         .filter((item) => item.sleep !== undefined)
-        .sort((a, b) => a.cycleDay! - b.cycleDay!);
+        .sort((a, b) => Number(a.cycleDay) - Number(b.cycleDay));
 
     if (chartData.length === 0) {
         return <p>No sleep data available yet.</p>;
@@ -42,13 +42,19 @@ function SleepChart({ checkins }: SleepChartProps) {
 
     return (
         <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
+            <LineChart
+                data={chartData}
+                margin={{
+                    top: 10,
+                    right: 20,
+                    left: 65,
+                    bottom: 10,
+                }}
+            >
                 <CartesianGrid strokeDasharray="3 3" />
 
                 <XAxis
                     dataKey="cycleDay"
-                    type="number"
-                    domain={["dataMin", "dataMax"]}
                     label={{
                         value: "Cycle Day",
                         position: "insideBottom",
