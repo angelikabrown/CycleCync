@@ -17,10 +17,10 @@ type MoodChartProps = {
 function MoodChart({ checkins }: MoodChartProps) {
     const moodValues: Record<string, number> = {
         "Very Bad": 1,
-        "Bad": 2,
-        "OK": 3,
-        "Good": 4,
-        "Excellent": 5,
+        Bad: 2,
+        OK: 3,
+        Good: 4,
+        Excellent: 5,
     };
 
     const chartData = checkins
@@ -33,43 +33,53 @@ function MoodChart({ checkins }: MoodChartProps) {
             cycleDay: checkin.cycle_day!,
             mood: moodValues[checkin.mood!],
         }))
+        .filter((item) => item.mood !== undefined)
         .sort((a, b) => a.cycleDay - b.cycleDay);
 
     if (chartData.length === 0) {
         return <p>No mood data available yet.</p>;
     }
 
-    const minCycleDay = Math.min(
-        ...chartData.map((item) => item.cycleDay)
-    );
+    const cycleDays = [
+        ...new Set(chartData.map((item) => item.cycleDay)),
+    ];
 
-    const maxCycleDay = Math.max(
-        ...chartData.map((item) => item.cycleDay)
-    );
+    let xAxisTicks: number[];
 
-    const cycleDayTicks = Array.from(
-        { length: maxCycleDay - minCycleDay + 1 },
-        (_, index) => minCycleDay + index
-    );
+    if (cycleDays.length <= 15) {
+        xAxisTicks = cycleDays;
+    } else {
+        const step = Math.ceil(cycleDays.length / 8);
+
+        xAxisTicks = cycleDays.filter(
+            (_, index) => index % step === 0
+        );
+
+        const lastDay = cycleDays[cycleDays.length - 1];
+
+        if (xAxisTicks[xAxisTicks.length - 1] !== lastDay) {
+            xAxisTicks.push(lastDay);
+        }
+    }
 
     return (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={200}>
             <LineChart
                 data={chartData}
                 margin={{
                     top: 10,
                     right: 20,
-                    left: 20,
+                    left: 55,
                     bottom: 10,
                 }}
             >
                 <CartesianGrid strokeDasharray="3 3" />
 
                 <XAxis
-                    type="number"
                     dataKey="cycleDay"
-                    domain={[minCycleDay, maxCycleDay]}
-                    ticks={cycleDayTicks}
+                    type="number"
+                    domain={["dataMin", "dataMax"]}
+                    ticks={xAxisTicks}
                     allowDecimals={false}
                     label={{
                         value: "Cycle Day",

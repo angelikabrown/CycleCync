@@ -126,6 +126,7 @@ function Dashboard() {
 
             {/* Charts */}
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+
                 {/* BBT */}
                 <section className="lg:col-span-2 rounded-3xl bg-[#E8E0F2] p-5 shadow-sm">
                     <div className="mb-4">
@@ -185,6 +186,7 @@ function Dashboard() {
 
                     <SleepChart checkins={checkins} />
                 </section>
+
             </div>
 
             {/* Compare */}

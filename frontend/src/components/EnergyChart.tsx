@@ -30,18 +30,40 @@ function EnergyChart({ checkins }: EnergyChartProps) {
                 checkin.energy_level !== null
         )
         .map((checkin) => ({
-            cycleDay: String(checkin.cycle_day),
+            cycleDay: checkin.cycle_day!,
             energy: energyValues[checkin.energy_level!],
         }))
         .filter((item) => item.energy !== undefined)
-        .sort((a, b) => Number(a.cycleDay) - Number(b.cycleDay));
+        .sort((a, b) => a.cycleDay - b.cycleDay);
 
     if (chartData.length === 0) {
         return <p>No energy data available yet.</p>;
     }
 
+    const cycleDays = [
+        ...new Set(chartData.map((item) => item.cycleDay)),
+    ];
+
+    let xAxisTicks: number[];
+
+    if (cycleDays.length <= 15) {
+        xAxisTicks = cycleDays;
+    } else {
+        const step = Math.ceil(cycleDays.length / 8);
+
+        xAxisTicks = cycleDays.filter(
+            (_, index) => index % step === 0
+        );
+
+        const lastDay = cycleDays[cycleDays.length - 1];
+
+        if (xAxisTicks[xAxisTicks.length - 1] !== lastDay) {
+            xAxisTicks.push(lastDay);
+        }
+    }
+
     return (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={200}>
             <LineChart
                 data={chartData}
                 margin={{
@@ -55,6 +77,10 @@ function EnergyChart({ checkins }: EnergyChartProps) {
 
                 <XAxis
                     dataKey="cycleDay"
+                    type="number"
+                    domain={["dataMin", "dataMax"]}
+                    ticks={xAxisTicks}
+                    allowDecimals={false}
                     label={{
                         value: "Cycle Day",
                         position: "insideBottom",
