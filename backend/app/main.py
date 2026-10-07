@@ -7,6 +7,7 @@ from app.models.user import User
 from app.models.daily_check_in import DailyCheckIn
 from app.routers import users
 from app.routers import calendar
+from app.routers import cycle_metrics
 
 app = FastAPI()
 
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(users.router)
 app.include_router(daily_checkins.router)
 app.include_router(calendar.router)
+app.include_router(cycle_metrics.router)
 
 @app.get("/")
 def root():
